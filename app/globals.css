@@ -375,3 +375,35 @@
     cursor: default;
   }
 }
+
+/* Original Windows 95 pixel cursors, with native fallbacks. */
+@media (pointer: fine) {
+  body,
+  button,
+  select,
+  summary,
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="file"]::file-selector-button {
+    cursor: url("/cursors/windows-95-arrow.svg") 2 1, default;
+  }
+
+  a,
+  .btn,
+  [role="link"] {
+    cursor: url("/cursors/windows-95-hand.svg") 10 1, pointer;
+  }
+
+  input:not([type="checkbox"], [type="radio"], [type="file"]),
+  textarea,
+  [contenteditable="true"] {
+    cursor: text;
+  }
+
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    cursor: not-allowed;
+  }
+}

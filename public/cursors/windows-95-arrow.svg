@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Original pixel drawing; hotspot at the upper-left tip. -->
+  <path d="M2 1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1H9v2h1v2h1v2h1v2H9v-2H8v-2H7v-2H6v-1H5v1H4v1H3v1H2Z" fill="#000"/>
+  <path d="M3 3h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1H8v4h1v2h1v2h1v1H10v-1H9v-2H8v-2H7v-2H5v1H4v1H3Z" fill="#fff"/>
+</svg>
