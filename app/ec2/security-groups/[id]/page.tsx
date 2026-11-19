@@ -12,7 +12,7 @@ import {
 } from "../../actions";
 
 const inputClass =
-  "rounded-md border border-border bg-transparent px-2 py-1.5 outline-none focus:border-foreground";
+  "";
 
 export default async function SecurityGroupPage({
   params,
@@ -93,7 +93,7 @@ function Rules({
 }) {
   return (
     <div className="space-y-3">
-      <h3 className="font-display text-3xl">{title}</h3>
+      <h3 className="text-lg font-bold">{title}</h3>
       <p className="text-xs text-muted">
         {direction === "ingress"
           ? "Traffic allowed into resources using this group."
@@ -101,7 +101,7 @@ function Rules({
       </p>
       <div className="console-window overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <caption className="border-b border-border bg-surface px-4 py-2 text-left text-xs uppercase tracking-wider">
+          <caption className="border-b border-border bg-surface px-4 py-1 text-left text-xs font-bold">
             {rules.length} {rules.length === 1 ? "rule" : "rules"} /{" "}
             {direction === "ingress" ? "Inbound" : "Outbound"}
           </caption>
@@ -193,7 +193,7 @@ function Rules({
           placeholder="Description"
           className={`${inputClass} w-48`}
         />
-        <button className="rounded-md border border-border px-3 py-1.5 hover:bg-surface">
+        <button>
           Add rule
         </button>
       </ActionForm>

@@ -69,9 +69,7 @@ const input = {
 describe("ECS reads", () => {
   it("loads a bounded page and describes services in batches of ten", async () => {
     const arns = Array.from({ length: 23 }, (_, i) => `service-${i}`);
-    mock
-      .on(ECS.ListServicesCommand)
-      .resolves({ serviceArns: arns, nextToken: "next" });
+    mock.on(ECS.ListServicesCommand).resolves({ serviceArns: arns });
     mock.on(ECS.DescribeServicesCommand).callsFake((args) => ({
       services: args.services.map((name: string) => ({ serviceName: name })),
       failures: args.services.includes("service-20")
@@ -80,7 +78,7 @@ describe("ECS reads", () => {
     }));
     const result = await ecs.listServices(region, "test", "previous");
     expect(mock.commandCalls(ECS.ListServicesCommand)[0].args[0].input).toEqual(
-      { cluster: "test", maxResults: 50, nextToken: "previous" },
+      { cluster: "test", maxResults: 100, nextToken: "previous" },
     );
     expect(
       mock
@@ -89,7 +87,25 @@ describe("ECS reads", () => {
     ).toEqual([10, 10, 3]);
     expect(result.resources).toHaveLength(23);
     expect(result.failures).toHaveLength(1);
-    expect(result.nextToken).toBe("next");
+    expect(result.nextToken).toBeUndefined();
+  });
+  it("filters service names across pages", async () => {
+    mock
+      .on(ECS.ListServicesCommand)
+      .resolvesOnce({
+        serviceArns: ["arn:x/test/api", "arn:x/test/web"],
+        nextToken: "t",
+      })
+      .resolvesOnce({ serviceArns: ["arn:x/test/WEB-2"] });
+    mock.on(ECS.DescribeServicesCommand).callsFake((args) => ({
+      services: args.services.map((name: string) => ({ serviceName: name })),
+    }));
+    const result = await ecs.listServices(region, "test", undefined, "web");
+    expect(result.resources.map((s) => s.serviceName)).toEqual([
+      "arn:x/test/web",
+      "arn:x/test/WEB-2",
+    ]);
+    expect(mock.commandCalls(ECS.ListServicesCommand)).toHaveLength(2);
   });
   it("does not describe an empty page", async () => {
     mock
@@ -368,18 +384,16 @@ describe("mutation guards and preservation", () => {
 
 describe("existing service revisions", () => {
   it("scales existing workloads without revalidating an inactive task definition or requiring networking lookups", async () => {
-    mock
-      .on(ECS.DescribeServicesCommand)
-      .resolves({
-        services: [
-          {
-            serviceName: "web",
-            taskDefinition: "app:1",
-            schedulingStrategy: "REPLICA",
-            desiredCount: 2,
-          },
-        ],
-      });
+    mock.on(ECS.DescribeServicesCommand).resolves({
+      services: [
+        {
+          serviceName: "web",
+          taskDefinition: "app:1",
+          schedulingStrategy: "REPLICA",
+          desiredCount: 2,
+        },
+      ],
+    });
     mock.on(ECS.UpdateServiceCommand).resolves({});
     await ecs.updateService(region, "test", "web", { desiredCount: 1 });
     expect(mock.commandCalls(ECS.DescribeTaskDefinitionCommand)).toHaveLength(
@@ -392,13 +406,11 @@ describe("existing service revisions", () => {
   });
   it("preserves advanced nested circuit-breaker settings", async () => {
     const advanced = { enable: true, rollback: true, resetOnHealthyTask: true };
-    mock
-      .on(ECS.DescribeServicesCommand)
-      .resolves({
-        services: [
-          { deploymentConfiguration: { deploymentCircuitBreaker: advanced } },
-        ],
-      });
+    mock.on(ECS.DescribeServicesCommand).resolves({
+      services: [
+        { deploymentConfiguration: { deploymentCircuitBreaker: advanced } },
+      ],
+    });
     mock.on(ECS.UpdateServiceCommand).resolves({});
     await ecs.updateService(region, "test", "web", {
       deploymentConfiguration: {

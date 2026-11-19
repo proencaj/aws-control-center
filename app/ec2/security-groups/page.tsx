@@ -6,7 +6,7 @@ import { listSecurityGroups, listVpcs } from "@/lib/ec2";
 import { createSecurityGroupAction } from "../actions";
 
 const inputClass =
-  "w-full rounded-md border border-border bg-transparent px-2 py-1.5 outline-none focus:border-foreground";
+  "w-full";
 
 export default async function SecurityGroupsPage({
   searchParams,
@@ -20,14 +20,14 @@ export default async function SecurityGroupsPage({
 
   return (
     <section className="space-y-4">
-      <div className="space-y-2 border-b-4 border-double border-border pb-4">
+      <div className="space-y-2">
         <h2 className="console-heading">Security group directory</h2>
         <p className="text-sm text-muted">
           Open a group to inspect inbound and outbound rules for its VPC.
         </p>
       </div>
-      <details className="rounded-md border border-border p-4">
-        <summary className="cursor-pointer text-sm font-medium">
+      <details className="group-box p-4">
+        <summary className="text-sm font-bold">
           Create security group
         </summary>
         <ActionForm
@@ -54,7 +54,7 @@ export default async function SecurityGroupsPage({
                 ))}
             </select>
           </label>
-          <button className="rounded-md bg-foreground px-3 py-1.5 font-medium text-background">
+          <button className="font-bold">
             Create
           </button>
         </ActionForm>
@@ -66,7 +66,7 @@ export default async function SecurityGroupsPage({
         <>
           <div className="console-window overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <caption className="border-b border-border bg-surface px-4 py-2 text-left text-xs uppercase tracking-wider">
+              <caption className="border-b border-border bg-surface px-4 py-1 text-left text-xs font-bold">
                 Result set / {groups.data.securityGroups.length}{" "}
                 {groups.data.securityGroups.length === 1 ? "group" : "groups"}{" "}
                 on this page
@@ -84,7 +84,7 @@ export default async function SecurityGroupsPage({
                 {groups.data.securityGroups.length === 0 && (
                   <tr>
                     <td colSpan={4} className="p-8 text-center text-muted">
-                      <p className="mb-2 text-xs uppercase tracking-wider">
+                      <p className="mb-2 text-xs font-bold">
                         Empty result set
                       </p>
                       <p>

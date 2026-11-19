@@ -61,7 +61,7 @@ export function ContextDialog({
       ref={modal}
       onClose={close}
       aria-labelledby="context-title"
-      className="console-window m-auto max-h-[90vh] w-[95vw] max-w-6xl overflow-auto bg-background text-foreground backdrop:bg-foreground/40"
+      className="console-window m-auto max-h-[90vh] w-[95vw] max-w-6xl overflow-auto text-foreground"
     >
       <div className="console-title">
         <h2 id="context-title">Event context / unfiltered source stream</h2>
@@ -91,7 +91,7 @@ export function ContextDialog({
               required
               value={before}
               onChange={(event) => setBefore(Number(event.target.value))}
-              className="w-20 border border-border bg-background p-2"
+              className="w-20"
             />
           </label>
           <label>
@@ -103,17 +103,16 @@ export function ContextDialog({
               required
               value={after}
               onChange={(event) => setAfter(Number(event.target.value))}
-              className="w-20 border border-border bg-background p-2"
+              className="w-20"
             />
           </label>
-          <button disabled={busy} className="border border-border p-2">
+          <button disabled={busy}>
             Load context
           </button>
           <button
             type="button"
             disabled={busy || range.before >= 100}
             onClick={() => load(Math.min(100, range.before + 10), range.after)}
-            className="border border-border p-2"
           >
             Load earlier
           </button>
@@ -121,7 +120,6 @@ export function ContextDialog({
             type="button"
             disabled={busy || range.after >= 100}
             onClick={() => load(range.before, Math.min(100, range.after + 10))}
-            className="border border-border p-2"
           >
             Load later
           </button>
@@ -143,7 +141,7 @@ export function ContextDialog({
               <pre
                 key={index}
                 ref={index === data.anchor ? anchor : undefined}
-                className={`log-message whitespace-pre px-3 py-2 font-mono text-xs leading-6 ${index === data.anchor ? "border-y-2 border-foreground bg-surface" : ""}`}
+                className={`log-message whitespace-pre px-3 py-2 font-mono text-xs leading-6 ${index === data.anchor ? "bg-selection text-selection-foreground" : ""}`}
                 data-severity={formatted.severity}
               >
                 {index === data.anchor ? "> SELECTED EVENT\n" : ""}

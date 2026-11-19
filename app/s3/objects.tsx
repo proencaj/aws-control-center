@@ -20,8 +20,7 @@ export type ObjectRow = {
   modified: string;
 };
 type Operation = "delete" | "storage";
-const buttonClass =
-  "border border-border px-3 py-2 text-xs hover:bg-surface disabled:opacity-40";
+const buttonClass = "";
 
 export function ObjectBrowser({
   bucket,
@@ -84,19 +83,19 @@ export function ObjectBrowser({
           {menu && (
             <div
               id={menuId}
-              className="absolute right-0 z-10 mt-1 w-60 border border-border bg-background p-1"
+              className="raised absolute right-0 z-10 mt-1 w-60 p-1"
             >
               <button
                 type="button"
                 onClick={() => open("storage")}
-                className="block w-full px-3 py-2 text-left text-sm hover:bg-surface"
+                className="block w-full text-left"
               >
                 Change storage class
               </button>
               <button
                 type="button"
                 onClick={() => open("delete")}
-                className="block w-full px-3 py-2 text-left text-sm hover:bg-surface"
+                className="block w-full text-left"
               >
                 Delete objects
               </button>
@@ -272,7 +271,7 @@ function ObjectActionDialog({
         if (pending) event.preventDefault();
       }}
       onClose={onClose}
-      className="console-window m-auto max-h-[90vh] w-[calc(100%_-_2rem)] max-w-3xl overflow-y-auto bg-background text-foreground backdrop:bg-foreground/40"
+      className="console-window m-auto max-h-[90vh] w-[calc(100%_-_2rem)] max-w-3xl overflow-y-auto text-foreground"
     >
       <div className="console-title">
         <span>S3 / {deleting ? "Delete objects" : "Storage class"}</span>
@@ -341,7 +340,7 @@ function ObjectActionDialog({
                 name="confirm"
                 rows={2}
                 autoComplete="off"
-                className="w-full border border-border bg-background px-3 py-2"
+                className="w-full"
                 value={confirmation}
                 disabled={pending || Boolean(state.results)}
                 onChange={(event) => setConfirmation(event.target.value)}
@@ -353,7 +352,7 @@ function ObjectActionDialog({
             <label className="block space-y-2">
               <span>New storage class</span>
               <select
-                className="w-full border border-border bg-background px-3 py-2"
+                className="w-full"
                 required
                 value={target}
                 disabled={pending || Boolean(state.results)}
@@ -461,7 +460,7 @@ function ObjectActionDialog({
           {!state.results && (
             <button
               type="submit"
-              className="border border-foreground bg-foreground px-4 py-2 text-sm text-background disabled:opacity-40"
+              className="font-bold"
               disabled={
                 pending ||
                 (deleting

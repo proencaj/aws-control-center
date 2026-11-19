@@ -7,10 +7,13 @@ import {
   screen,
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { BucketSearch } from "./bucket-search";
+import { FilterSearch } from "./filter-search";
 
 const replace = vi.hoisted(() => vi.fn());
-vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace }),
+  usePathname: () => "/s3",
+}));
 beforeEach(() => {
   vi.useFakeTimers();
   replace.mockReset();
@@ -21,7 +24,14 @@ afterEach(() => {
 });
 
 it("debounces typing and starts a new result page without a submit button", async () => {
-  render(<BucketSearch prefix="" />);
+  render(
+    <FilterSearch
+      param="prefix"
+      value=""
+      label="Bucket name prefix"
+      placeholder="Find buckets"
+    />,
+  );
   const input = screen.getByRole("searchbox");
   fireEvent.change(input, { target: { value: "p" } });
   await act(() => vi.advanceTimersByTimeAsync(200));
@@ -36,7 +46,14 @@ it("debounces typing and starts a new result page without a submit button", asyn
 });
 
 it("clears immediately and cancels a queued filter", async () => {
-  render(<BucketSearch prefix="prod" />);
+  render(
+    <FilterSearch
+      param="prefix"
+      value="prod"
+      label="Bucket name prefix"
+      placeholder="Find buckets"
+    />,
+  );
   fireEvent.change(screen.getByRole("searchbox"), {
     target: { value: "staging" },
   });
@@ -46,7 +63,14 @@ it("clears immediately and cancels a queued filter", async () => {
 });
 
 it("does not navigate after leaving the page", async () => {
-  const view = render(<BucketSearch prefix="" />);
+  const view = render(
+    <FilterSearch
+      param="prefix"
+      value=""
+      label="Bucket name prefix"
+      placeholder="Find buckets"
+    />,
+  );
   fireEvent.change(screen.getByRole("searchbox"), {
     target: { value: "prod" },
   });

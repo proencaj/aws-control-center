@@ -1,5 +1,6 @@
 import { getCallerIdentity } from "@/lib/sts";
 import Link from "next/link";
+import { Server, Container, ScrollText, HardDrive } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -17,10 +18,10 @@ export default async function Home() {
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <p className="console-kicker">00 / Main directory</p>
+        <p className="console-kicker">Your workspace</p>
         <h1 className="console-heading">AWS Control Center</h1>
         <p className="text-sm text-muted">
-          Select a service. Inspect resources. Manage your account.
+          Your resources, all in one place.
         </p>
       </div>
 
@@ -55,102 +56,42 @@ export default async function Home() {
                 For temporary credentials, also set{" "}
                 <code>AWS_SESSION_TOKEN</code>.
               </li>
+              <li>
+                Or copy <code>accounts.example.json</code> to{" "}
+                <code>accounts.json</code> and add one entry per account. It
+                replaces the variables above.
+              </li>
               <li>Restart Docker Compose, then reload this page.</li>
             </ol>
           </div>
         </section>
       )}
 
-      <section className="console-window" aria-labelledby="service-directory">
-        <div className="console-title">
-          <h2 id="service-directory">Service directory</h2>
-          <span>04 services</span>
+      <section className="space-y-4" aria-labelledby="service-directory">
+        <div className="flex items-center justify-between">
+          <h2 id="service-directory" className="text-lg font-semibold">Services</h2>
+          <span className="text-xs text-muted">Your AWS workspace</span>
         </div>
-        <div className="grid md:grid-cols-2">
-          <div className="space-y-5 border-b border-border p-5 md:border-r md:border-b-0">
-            <div>
-              <p className="console-kicker">01 / Compute</p>
-              <h3 className="font-display text-3xl">EC2</h3>
-              <p className="text-sm text-muted">
-                Virtual machines and network access.
-              </p>
-            </div>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <Link className="underline" href="/ec2">
-                  Browse instances →
-                </Link>
-              </li>
-              <li>
-                <Link className="underline" href="/ec2/security-groups">
-                  Inspect security groups →
-                </Link>
-              </li>
-              <li>
-                <Link className="underline" href="/ec2/instances/new">
-                  Launch an instance →
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div className="space-y-5 p-5">
-            <div>
-              <p className="console-kicker">02 / Containers</p>
-              <h3 className="font-display text-3xl">ECS</h3>
-              <p className="text-sm text-muted">
-                Clusters, workloads, and compute capacity.
-              </p>
-            </div>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <Link className="underline" href="/ecs">
-                  Browse clusters →
-                </Link>
-              </li>
-              <li>
-                <Link className="underline" href="/ecs/task-definitions">
-                  Inspect task definitions →
-                </Link>
-              </li>
-              <li>
-                <Link className="underline" href="/ecs/capacity-providers">
-                  Manage capacity providers →
-                </Link>
-              </li>
-            </ul>
-          </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {[
+            { name: "EC2", category: "Compute", description: "Virtual machines, capacity, and network access.", icon: Server, links: [["Instances", "/ec2"], ["Security groups", "/ec2/security-groups"], ["Launch instance", "/ec2/instances/new"]] },
+            { name: "ECS", category: "Containers", description: "Clusters, workloads, and compute capacity.", icon: Container, links: [["Clusters", "/ecs"], ["Task definitions", "/ecs/task-definitions"], ["Capacity providers", "/ecs/capacity-providers"]] },
+            { name: "CloudWatch Logs", category: "Observability", description: "Follow live output and explore your application logs.", icon: ScrollText, links: [["Logs Monitor", "/logs-monitor"], ["Logs Explorer", "/logs-explorer"]] },
+            { name: "S3", category: "Storage", description: "Buckets, objects, and storage classes across all regions.", icon: HardDrive, links: [["Buckets", "/s3"]] },
+          ].map(({ name, category, description, icon: Icon, links }) => (
+            <article key={name} className="service-card">
+              <div className="flex items-center gap-3">
+                <span className="service-icon"><Icon size={22} aria-hidden /></span>
+                <div><p className="console-kicker">{category}</p><h3 className="text-lg font-semibold">{name}</h3></div>
+              </div>
+              <p className="text-sm text-muted">{description}</p>
+              <ul className="mt-auto flex flex-wrap gap-x-5 gap-y-3 pt-2 text-sm">
+                {links.map(([label, href]) => <li key={href}><Link className="inline-flex items-center gap-1 hover:underline" href={href}>{label}</Link></li>)}
+              </ul>
+            </article>
+          ))}
         </div>
-        <div className="space-y-3 border-t border-border p-5">
-          <p className="console-kicker">03 / CloudWatch Logs</p>
-          <h3 className="font-display text-3xl">Logs Monitor</h3>
-          <p className="text-sm text-muted">
-            Read recent log events and follow new output in a live console.
-          </p>
-          <Link className="inline-block text-sm underline" href="/logs-monitor">
-            Open Logs Monitor →
-          </Link>
-          <Link
-            className="ml-4 inline-block text-sm underline"
-            href="/logs-explorer"
-          >
-            Open Logs Explorer →
-          </Link>
-        </div>
-        <div className="space-y-3 border-t border-border p-5">
-          <p className="console-kicker">04 / Object storage</p>
-          <h3 className="font-display text-3xl">S3</h3>
-          <p className="text-sm text-muted">
-            Browse buckets across all regions, inspect objects, and manage their
-            storage class.
-          </p>
-          <Link className="inline-block text-sm underline" href="/s3">
-            Browse S3 buckets →
-          </Link>
-        </div>
-        <p className="border-t border-border bg-surface px-5 py-3 text-xs text-muted">
-          Regional services use the region selected above. S3 lists buckets
-          globally.
-        </p>
+        <p className="text-xs text-muted">Regional services use the region selected above. S3 lists buckets globally.</p>
       </section>
     </div>
   );
@@ -160,7 +101,7 @@ function Row({ label, value }: { label: string; value?: string }) {
   return (
     <div className="grid gap-2 px-4 py-3 sm:grid-cols-[7rem_1fr] sm:gap-4">
       <dt className="text-muted">{label}</dt>
-      <dd className="break-all">{value}</dd>
+      <dd className="break-all font-mono">{value}</dd>
     </div>
   );
 }

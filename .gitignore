@@ -6,3 +6,4 @@ next-env.d.ts
 !.env.example
 .DS_Store
 app/fonts/BerkeleyMono-*.ttf
+accounts.json

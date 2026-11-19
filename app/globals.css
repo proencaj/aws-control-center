@@ -1,174 +1,248 @@
 @import "tailwindcss";
 
+/* Local system fonts only: Apple fonts are never redistributed. */
+@font-face {
+  font-family: "SF Mono Local";
+  src: local("SF Mono Regular"), local("SFMono-Regular"), local("SF Mono");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "SF Mono Local";
+  src: local("SF Mono Bold"), local("SFMono-Bold");
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* Apple-inspired semantic colors, following system appearance. */
 :root {
   color-scheme: light;
-  --background: #f5f5f5;
-  --foreground: #1a1a1a;
-  --muted: #626262;
-  --border: #777777;
-  --surface: #e5e5e5;
-  --log-normal: #626262;
-  --log-warning: #414141;
-  --log-error: #1a1a1a;
+  --desktop: #e9edf3;
+  --background: #f5f5f7;
+  --surface: #ffffff;
+  --field: #ffffff;
+  --foreground: #1d1d1f;
+  --muted: #636366;
+  --disabled: #8e8e93;
+  --border: #d9d9df;
+  --title: #f5f5f7;
+  --title-foreground: #1d1d1f;
+  --selection: #0066cc;
+  --selection-foreground: #ffffff;
+  --accent: #0066cc;
+  --hover: #edf3fc;
+  --sidebar: #eef0f5;
+  --control: #ffffff;
+  --shadow: #00000012;
+  --scrim: #00000055;
+  --log-normal: #48484a;
+  --log-warning: #854900;
+  --log-error: #b42318;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    color-scheme: dark;
-    --background: #111111;
-    --foreground: #eeeeee;
-    --muted: #aaaaaa;
-    --border: #606060;
-    --surface: #1c1c1c;
-    --log-normal: #aaaaaa;
-    --log-warning: #cccccc;
-    --log-error: #eeeeee;
+  color-scheme: dark;
+  --desktop: #141416;
+  --background: #1c1c1e;
+  --surface: #242426;
+  --field: #1c1c1e;
+  --foreground: #f5f5f7;
+  --muted: #aeaeb2;
+  --disabled: #8e8e93;
+  --border: #454549;
+  --title: #2c2c2e;
+  --title-foreground: #f5f5f7;
+  --selection: #005bb5;
+  --selection-foreground: #ffffff;
+  --accent: #64aaff;
+  --hover: #29384b;
+  --sidebar: #242428;
+  --control: #38383a;
+  --shadow: #00000040;
+  --scrim: #00000088;
+  --log-normal: #d1d1d6;
+  --log-warning: #ffd60a;
+  --log-error: #ff6961;
   }
 }
 
 @theme inline {
+  --color-desktop: var(--desktop);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-border: var(--border);
   --color-surface: var(--surface);
-  --font-mono:
-    var(--font-berkeley), Monaco, "SFMono-Regular", Consolas, "Liberation Mono",
-    Menlo, monospace;
-  --font-display: var(--font-terminal), monospace;
-  /* Shared by the existing panels, dialogs, and form controls. */
-  --radius-md: 0;
+  --color-field: var(--field);
+  --color-disabled: var(--disabled);
+  --color-title: var(--title);
+  --color-title-foreground: var(--title-foreground);
+  --color-selection: var(--selection);
+  --color-selection-foreground: var(--selection-foreground);
+  --color-accent: var(--accent);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono Local", "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace;
+  --radius-md: 0.625rem;
 }
 
 @layer base {
   body {
-    background: var(--background);
+    background: var(--desktop);
     color: var(--foreground);
-    font-family: var(--font-mono);
-    font-size: 0.875rem;
-    line-height: 1.6;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
   }
-
-  h1 {
-    text-transform: uppercase;
-  }
-
+  h1, h2, h3 { font-weight: 600; }
+  ::selection { background: var(--selection); color: var(--selection-foreground); }
   :where(a, button, input, select, textarea, summary):focus-visible {
-    outline: 2px solid var(--foreground);
+    outline: 3px solid var(--accent);
     outline-offset: 3px;
   }
-
-  :where(a) {
-    text-underline-offset: 0.2em;
-    text-decoration-thickness: 1px;
+  :where(a) { text-underline-offset: 0.2em; }
+  button, summary.btn {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--control);
+    color: var(--foreground);
+    box-shadow: 0 1px 2px var(--shadow);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
   }
+  button:not([role="tab"], [aria-current], .plain, .btn-icon) {
+    min-height: 32px;
+    padding: 5px 12px;
+  }
+  button:not(.plain):hover:not(:disabled), summary.btn:hover { background: var(--hover); }
+  button:not(.plain):active:not(:disabled) { box-shadow: none; }
+  button:disabled { color: var(--disabled); cursor: not-allowed; box-shadow: none; }
+  button.plain { border: 0; border-radius: 6px; color: inherit; }
+  :where(input:not([type="checkbox"], [type="radio"], [type="file"]), select, textarea) {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--field);
+    color: var(--foreground);
+    font-size: 13px;
+    padding: 6px 10px;
+    min-height: 32px;
+  }
+  :where(input, select, textarea):disabled { color: var(--disabled); background: var(--background); }
+  :where(input, textarea)::placeholder { color: var(--muted); }
+  input[type="checkbox"], input[type="radio"] { accent-color: var(--selection); }
+  input[type="file"]::file-selector-button {
+    margin-right: 0.75rem;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--control);
+    color: var(--foreground);
+    cursor: pointer;
+  }
+  dialog { background: var(--surface); color: var(--foreground); max-height: calc(100dvh - 2rem); overflow-y: auto; }
+  dialog::backdrop { background: var(--scrim); backdrop-filter: blur(5px); }
+  code, pre, kbd, samp { font-family: var(--font-mono); }
+  code { font-size: 0.9em; }
+  summary { cursor: pointer; }
 }
 
 @layer components {
-  .log-message {
-    color: var(--log-normal);
-    font-weight: 400;
-  }
-
-  .log-message[data-severity="warning"] {
-    color: var(--log-warning);
-    font-weight: 500;
-  }
-
-  .log-message[data-severity="error"] {
-    color: var(--log-error);
-    font-weight: 700;
-  }
-
+  .log-message { color: var(--log-normal); font-weight: 400; }
+  .log-message[data-severity="warning"] { color: var(--log-warning); font-weight: 600; }
+  .log-message[data-severity="error"] { color: var(--log-error); font-weight: 700; text-decoration: underline; }
   .console-window {
-    border: 3px double var(--border);
     min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 3px 12px var(--shadow);
   }
-
   .console-title {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    background: var(--foreground);
-    color: var(--background);
-    padding: 0.5rem 1rem;
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    background: var(--title);
+    color: var(--title-foreground);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    border-radius: 13px 13px 0 0;
+    font-size: 13px;
+    font-weight: 600;
   }
-
-  .console-kicker {
-    font-size: 0.6875rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  .console-heading {
-    font-family: var(--font-display);
-    font-size: 2.5rem;
-    font-weight: 400;
-    line-height: 1.1;
-    overflow-wrap: anywhere;
-  }
-
-  .console-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border-top: 1px solid var(--border);
-    background: var(--surface);
-  }
-
-  .console-tabs a {
-    padding: 0.25rem 0.5rem;
+  .console-title > span { color: var(--muted); font-size: 13px; font-weight: 400; }
+  .console-kicker { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .console-heading { font-size: 26px; font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; overflow-wrap: anywhere; }
+  .group-box { border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 5px 12px;
     border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    background: var(--control);
+    color: var(--foreground);
+    box-shadow: 0 1px 2px var(--shadow);
   }
-
-  .console-tabs a:hover,
-  .console-tabs a[aria-current="page"] {
-    background: var(--foreground);
-    color: var(--background);
-  }
-
-  main nav {
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  thead {
-    background: var(--surface);
-  }
-
-  th {
-    font-size: 0.75rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  main th + th,
-  main td + td {
-    border-left: 1px solid var(--border);
-  }
-
-  main tbody tr:hover {
-    background: var(--surface);
-  }
-
-  main dt {
+  .btn:hover { background: var(--hover); }
+  .btn:active { box-shadow: none; }
+  .sunken { background: var(--field); border: 1px solid var(--border); border-radius: 8px; }
+  .raised { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+  .status-field { color: var(--muted); padding: 4px 8px; }
+  .sheet-tab {
+    position: relative;
+    background: transparent;
     color: var(--muted);
-    font-size: 0.75rem;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    white-space: nowrap;
   }
-
-  main :where(button, a.border) {
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
+  .sheet-tab:hover { background: var(--hover); }
+  .sheet-tab[data-selected="true"], .sheet-tab[aria-current="page"] {
+    color: var(--foreground);
+    font-weight: 600;
+    background: var(--surface);
+    box-shadow: 0 1px 4px var(--shadow);
   }
-
-  :where(input, select, textarea) {
-    accent-color: var(--foreground);
+  .console-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 5px; border-radius: 8px; background: var(--sidebar); border: 1px solid var(--border); }
+  .console-tabs a { text-decoration: none; }
+  main nav { font-size: 13px; }
+  table { background: var(--field); }
+  thead { background: var(--title); }
+  th { font-size: 13px; font-weight: 600; color: var(--muted); background: var(--title); border-bottom: 1px solid var(--border); }
+  main tbody tr:hover { background: var(--hover); }
+  main dt { color: var(--muted); font-size: 13px; }
+  main a:not(.btn, .sheet-tab) { color: var(--accent); }
+  .app-shell { background: var(--background); border-radius: 12px; box-shadow: 0 12px 48px var(--shadow); }
+  .app-title { padding: 14px 20px; background: var(--sidebar); border-radius: 13px 13px 0 0; }
+  .app-title > span { color: var(--foreground); font-size: 14px; font-weight: 600; }
+  .app-sidebar { background: var(--sidebar); border-right: 1px solid var(--border); }
+  .sidebar-search { background: var(--field); border: 1px solid var(--border); border-radius: 8px; }
+  .sidebar-search input { min-width: 0; border: 0; background: transparent; }
+  .sidebar-item { border-radius: 8px; }
+  .sidebar-item:hover { background: var(--hover); }
+  .sidebar-item:has([aria-current="page"]) { background: var(--selection); color: var(--selection-foreground); }
+  .sidebar-item .btn-icon { border: 0; background: transparent; color: inherit; box-shadow: none; border-radius: 12px; padding: 5px; }
+  .workspace-tabs { background: var(--background); border-bottom: 1px solid var(--border); }
+  .workspace-content { background: var(--background); }
+  .app-toolbar { border-bottom: 1px solid var(--border); }
+  dialog.console-window { border-radius: 12px; box-shadow: 0 24px 80px var(--shadow); width: calc(100% - 2rem); }
+  dialog .console-heading { font-size: 22px; }
+  .service-card { display: flex; flex-direction: column; gap: 14px; padding: 24px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+  .service-icon { display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 14px; background: var(--hover); color: var(--accent); }
+  @media (max-width: 767px) {
+    .app-sidebar { border-right: 0; border-bottom: 1px solid var(--border); }
+    .console-heading { font-size: 24px; }
   }
+  @media (prefers-reduced-transparency: reduce) { dialog::backdrop { backdrop-filter: none; } }
 }

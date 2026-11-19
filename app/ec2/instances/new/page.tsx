@@ -14,7 +14,7 @@ const commonTypes = [
   "r5.large",
 ];
 const inputClass =
-  "w-full rounded-md border border-border bg-transparent px-2 py-1.5 outline-none focus:border-foreground";
+  "w-full";
 
 export default async function LaunchInstancePage() {
   const result = await attempt(getLaunchOptions());
@@ -104,7 +104,7 @@ export default async function LaunchInstancePage() {
             </fieldset>
           </div>
         </section>
-        <button className="rounded-md bg-foreground px-3 py-1.5 font-medium text-background disabled:opacity-40">
+        <button className="font-bold">
           Launch instance
         </button>
       </ActionForm>
