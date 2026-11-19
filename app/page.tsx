@@ -17,7 +17,7 @@ export default async function Home() {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-2">
+      <div className="directory-intro space-y-2">
         <p className="console-kicker">Your workspace</p>
         <h1 className="console-heading">AWS Control Center</h1>
         <p className="text-sm text-muted">
@@ -79,7 +79,7 @@ export default async function Home() {
             { name: "CloudWatch Logs", category: "Observability", description: "Follow live output and explore your application logs.", icon: ScrollText, links: [["Logs Monitor", "/logs-monitor"], ["Logs Explorer", "/logs-explorer"]] },
             { name: "S3", category: "Storage", description: "Buckets, objects, and storage classes across all regions.", icon: HardDrive, links: [["Buckets", "/s3"]] },
           ].map(({ name, category, description, icon: Icon, links }) => (
-            <article key={name} className="service-card">
+            <article key={name} className="service-card" data-service={category}>
               <div className="flex items-center gap-3">
                 <span className="service-icon"><Icon size={22} aria-hidden /></span>
                 <div><p className="console-kicker">{category}</p><h3 className="text-lg font-semibold">{name}</h3></div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Cloud, X } from "lucide-react";
+import { Cloud, Shield, Terminal, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { setAccount, setRegion } from "@/app/actions";
 import { AccountSelect } from "@/components/account-select";
@@ -322,10 +322,16 @@ export function WorkspaceShell({
 
   return (
     <WorkspaceContext.Provider value={context}>
-      <div className="min-h-screen p-2 md:p-4">
+      <div className="app-frame min-h-screen p-2 md:p-4">
         <div className="console-window app-shell flex min-h-[calc(100dvh-2rem)] flex-col">
           <div className="console-title app-title">
-            <span className="flex items-center gap-2"><Cloud size={20} className="text-accent" />AWS Control Center</span>
+            <span className="app-brand flex items-center gap-2">
+              <span className="brand-icon brand-default" aria-hidden><Terminal size={20} /></span>
+              <span className="brand-icon brand-apple" aria-hidden><Cloud size={20} /></span>
+              <span className="brand-icon brand-win95" aria-hidden>▣</span>
+              <span className="brand-icon brand-wow brand-emblem" aria-hidden><Shield size={22} /></span>
+              AWS Control Center
+            </span>
             <span>{accountName ?? "Personal workspace"}</span>
           </div>
           <div className="flex min-w-0 flex-1 flex-col md:flex-row">

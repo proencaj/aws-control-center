@@ -1,0 +1,99 @@
+html[data-theme="wow"] {
+  color-scheme: light;
+  --desktop: #191b18; --background: #e1cea4; --surface: #f0dfb7; --field: #f8ebca;
+  --foreground: #332718; --muted: #695332; --disabled: #81765f; --border: #a2844a;
+  --title: #302a23; --title-foreground: #f4d381; --title-muted: #b7ab8d;
+  --selection: #702425; --selection-foreground: #fff0c4; --accent: #70400c; --hover: #d9c08d;
+  --sidebar: #252723; --control: linear-gradient(#9a3232, #7d2426); --shadow: #100c0870; --scrim: #090c10bb;
+  --gold: #d1ab60; --gold-bright: #ffe1a0; --metal: #5f513b;
+  --chrome-text: #e8d6aa; --chrome-muted: #b7ab8d; --chrome-hover: #3c3b30; --texture: #59370808;
+  --log-normal: #473b29; --log-warning: #805000; --log-error: #a02524;
+  --service-compute: #91451e; --service-containers: #5445a0; --service-logs: #236b49; --service-storage: #256d94;
+  --theme-font-sans: var(--font-crimson), Georgia, serif;
+  --theme-font-mono: "SF Mono Local", "SF Mono", SFMono-Regular, ui-monospace, Menlo, monospace;
+  --theme-font-display: var(--font-cinzel), Georgia, serif; --theme-radius: 0.25rem;
+  --body-size: 17px; --body-leading: 1.5; --app-text-xs: 0.8125rem; --app-text-sm: 0.9375rem;
+  --heading-weight: 600; --heading-size: clamp(1.6rem, 3vw, 2.25rem); --heading-spacing: 0.01em;
+  --focus-width: 3px; --focus-offset: 3px; --control-font-size: 15px; --control-weight: 500;
+  --control-height: 32px; --control-padding: 5px 12px; --field-padding: 6px 10px;
+  --control-border: 2px ridge var(--border); --field-border: 1px solid var(--border);
+  --control-radius: 3px; --plain-radius: 2px; --panel-radius: 3px; --window-radius: 4px;
+  --control-shadow: 0 1px 2px var(--shadow); --control-active-shadow: none; --field-shadow: inset 0 2px 4px var(--shadow);
+  --window-border: 2px ridge var(--border); --window-shadow: inset 0 0 0 2px var(--field), 0 3px 8px var(--shadow);
+  --group-border: 1px solid var(--border); --group-shadow: inset 0 0 0 2px var(--background);
+  --title-padding: 12px 16px; --title-border: 2px ridge var(--border); --title-radius: 3px 3px 0 0; --title-size: 15px;
+  --tab-padding: 7px 12px; --tab-radius: 3px; --tab-shadow: 0 1px 4px var(--shadow);
+  --shell-radius: 5px; --shell-shadow: 0 12px 48px var(--shadow); --dialog-shadow: 0 24px 80px var(--shadow);
+  --app-title-padding: 14px 20px; --app-title-radius: 3px 3px 0 0; --brand-size: 17px;
+  --backdrop-filter: blur(5px); --error-decoration: underline;
+  -webkit-font-smoothing: antialiased;
+}
+
+html[data-theme="wow"] body { background-image: radial-gradient(ellipse at top, var(--metal), transparent 70%); background-attachment: fixed; }
+html[data-theme="wow"] :is(h1, h2, h3, .console-title, .sheet-tab, .app-sidebar > p) { font-family: var(--theme-font-display); }
+html[data-theme="wow"] .console-kicker { letter-spacing: 0.12em; text-transform: uppercase; font-family: var(--theme-font-display); }
+html[data-theme="wow"] :is(button:not(.plain):hover:not(:disabled), summary.btn:hover, .btn:hover) { background: #9a3232; }
+html[data-theme="wow"] .app-shell { border: 3px ridge var(--gold); box-shadow: 0 0 0 2px var(--title), 0 16px 48px var(--shadow); }
+html[data-theme="wow"] .app-title { background: linear-gradient(var(--chrome-hover), var(--title)); border-bottom: 3px ridge var(--gold); }
+html[data-theme="wow"] .app-title > span { color: var(--gold-bright); }
+html[data-theme="wow"] .app-title > span:last-child { color: var(--chrome-muted); font: 14px var(--theme-font-display); }
+html[data-theme="wow"] .brand-emblem { align-items: center; justify-content: center; width: 38px; height: 38px; border: 2px ridge var(--gold); border-radius: 50%; background: var(--selection); color: var(--gold-bright); box-shadow: inset 0 0 0 3px var(--title); }
+html[data-theme="wow"] .app-sidebar { color: var(--chrome-text); border-right: 3px ridge var(--metal); background-image: repeating-linear-gradient(135deg, transparent 0 6px, var(--texture) 6px 7px); }
+html[data-theme="wow"] .app-sidebar > p { color: var(--gold); letter-spacing: 0.12em; }
+html[data-theme="wow"] .sidebar-search { background: var(--title); border-color: var(--metal); color: var(--chrome-muted); }
+html[data-theme="wow"] .sidebar-search input { color: var(--chrome-text); }
+html[data-theme="wow"] .sidebar-search input::placeholder { color: var(--chrome-muted); }
+html[data-theme="wow"] .sidebar-item { border: 1px solid transparent; }
+html[data-theme="wow"] .sidebar-item:hover { background: var(--chrome-hover); border-color: var(--metal); }
+html[data-theme="wow"] .sidebar-item:has([aria-current="page"]) { border-color: var(--gold); box-shadow: inset 3px 0 var(--gold); background: linear-gradient(90deg, var(--selection), var(--title)); }
+html[data-theme="wow"] .sidebar-item svg { color: var(--gold); flex-shrink: 0; }
+html[data-theme="wow"] .app-toolbar { background: var(--surface); }
+html[data-theme="wow"] .workspace-tabs { background: var(--title); border-bottom: 2px ridge var(--gold); }
+html[data-theme="wow"] .workspace-tabs .sheet-tab { color: var(--chrome-muted); border: 1px solid var(--metal); background: var(--sidebar); }
+html[data-theme="wow"] .workspace-tabs .sheet-tab:hover { background: var(--chrome-hover); }
+html[data-theme="wow"] .workspace-tabs .sheet-tab[data-selected="true"] { color: var(--gold-bright); background: var(--selection); border-color: var(--gold); }
+html[data-theme="wow"] .workspace-content { background-image: repeating-linear-gradient(0deg, var(--texture) 0 1px, transparent 1px 4px), radial-gradient(ellipse at top, var(--surface), transparent 75%); }
+html[data-theme="wow"] .console-window:not(.app-shell),
+html[data-theme="wow"] .service-card { border: 2px ridge var(--border); box-shadow: inset 0 0 0 2px var(--field), 0 3px 8px var(--shadow); }
+html[data-theme="wow"] .console-title { background: linear-gradient(var(--chrome-hover), var(--title)); color: var(--gold-bright); }
+html[data-theme="wow"] .console-title > span { color: var(--chrome-muted); }
+html[data-theme="wow"] .service-card { position: relative; border-top: 3px solid var(--service-color); background: linear-gradient(120deg, var(--surface), var(--background)); }
+html[data-theme="wow"] .service-card[data-service="Compute"] { --service-color: var(--service-compute); }
+html[data-theme="wow"] .service-card[data-service="Containers"] { --service-color: var(--service-containers); }
+html[data-theme="wow"] .service-card[data-service="Observability"] { --service-color: var(--service-logs); }
+html[data-theme="wow"] .service-card[data-service="Storage"] { --service-color: var(--service-storage); }
+html[data-theme="wow"] .service-icon { width: 48px; height: 48px; background: var(--field); color: var(--service-color); border: 3px ridge var(--border); box-shadow: inset 0 0 8px var(--shadow); }
+html[data-theme="wow"] .service-card h3 { color: var(--service-color); }
+html[data-theme="wow"] .service-card a { font-weight: 600; }
+html[data-theme="wow"] .directory-intro { padding: 1.25rem 0 1.5rem; border-bottom: 3px double var(--border); }
+html[data-theme="wow"] th { color: var(--gold-bright); font-family: var(--theme-font-display); }
+html[data-theme="wow"] tbody tr + tr { border-top: 1px solid var(--border); }
+html[data-theme="wow"] footer { border-top: 2px ridge var(--metal); background: var(--title); }
+html[data-theme="wow"] footer .status-field { color: var(--chrome-muted); }
+html[data-theme="wow"] dialog.console-window { border: 3px ridge var(--gold); }
+
+@media (pointer: fine) {
+  html[data-theme="wow"] body { cursor: url("/cursors/gauntlet.svg") 7 3, default; }
+  html[data-theme="wow"] :is(a, button, summary, select, input[type="checkbox"], input[type="radio"], .btn),
+  html[data-theme="wow"] input[type="file"]::file-selector-button { cursor: url("/cursors/gauntlet-point.svg") 8 2, pointer; }
+  html[data-theme="wow"] input:not([type="checkbox"], [type="radio"], [type="file"]),
+  html[data-theme="wow"] textarea, html[data-theme="wow"] [contenteditable="true"] { cursor: text; }
+  html[data-theme="wow"] :is(button, input, select, textarea):disabled { cursor: not-allowed; }
+}
+
+@media (max-width: 767px) {
+  html[data-theme="wow"] .app-sidebar { border-right: 0; border-bottom: 2px ridge var(--metal); }
+  html[data-theme="wow"] .app-title { padding: 10px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme="wow"] {
+    color-scheme: dark;
+    --desktop: #101510; --background: #22241f; --surface: #2c2d25; --field: #191d1b;
+    --foreground: #efdfbb; --muted: #bdb297; --disabled: #8e897b; --border: #79643f;
+    --title: #201f1b; --selection: #702425; --accent: #f2c96c; --hover: #393c2d;
+    --sidebar: #1b201d; --control: linear-gradient(#9a3232, #782629); --shadow: #00000080; --texture: #d0a35306;
+    --log-normal: #dfd4b9; --log-warning: #ffd36a; --log-error: #ff9187;
+    --service-compute: #efad62; --service-containers: #bd9bfa; --service-logs: #7cc79b; --service-storage: #7cc4e6;
+  }
+}

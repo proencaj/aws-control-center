@@ -117,9 +117,10 @@ Later candidates: CloudWatch Logs, SQS, SNS, Secrets Manager.
 
 ## Style
 
-- **Apple-inspired theme.** macOS-style sidebar and workspace tabs, iOS-style grouped surfaces, rounded controls, subtle borders and shadows, neutral backgrounds, and blue accents. Use system sans-serif typography (`-apple-system`, `BlinkMacSystemFont`, SF Pro) and locally installed SF Mono for logs, JSON, code, and identifiers, with system fallbacks. Do not bundle or redistribute Apple fonts, logos, or proprietary assets.
-- **Light and dark mode.** Both are required on every screen, following `prefers-color-scheme`. Define colors once as CSS variables in `app/globals.css` and use semantic names (`bg-surface`, `bg-field`, `bg-selection`). No component hardcodes a color.
-- **Shared classes.** `console-window`, `console-title`, `group-box`, `raised`, `sunken`, `btn`, and `sheet-tab` retain their names for compatibility and render the Apple-inspired theme. Plain `button`, `input`, `select`, and `textarea` are styled globally. Preserve visible keyboard focus, readable contrast, and responsive layouts.
+- **Environment-selected themes.** `APP_THEME` accepts `default`, `apple`, `win95`, or `wow`; missing or invalid values use `default`. Theme selection is server-only and applies through the `data-theme` attribute on `<html>`.
+- **Complete theme packages.** Each theme owns its colors, typography, controls, surfaces, favicon, and cursor. `default` is the original monochrome terminal design; `apple` uses system Apple-style typography and rounded blue-accented surfaces; `win95` uses pixel cursors and beveled controls; `wow` uses open-license fantasy fonts, parchment/stone surfaces, and an original gauntlet cursor.
+- **Light and dark mode.** Both are required on every screen, following `prefers-color-scheme`. Define semantic colors in the corresponding file under `app/themes/`; components use names such as `bg-surface`, `bg-field`, and `bg-selection`.
+- **Shared classes.** `console-window`, `console-title`, `group-box`, `raised`, `sunken`, `btn`, and `sheet-tab` retain their names for compatibility across themes. Plain `button`, `input`, `select`, and `textarea` are styled globally. Preserve visible keyboard focus, readable contrast, and responsive layouts.
 - **Status** is conveyed with text, weight and icons, not hue. Destructive actions are marked by wording and the confirm dialog.
 - Use original or open-source icons; do not copy Apple or AWS logos.
 

@@ -1,0 +1,50 @@
+html[data-theme="default"] {
+  color-scheme: light;
+  --desktop: #f5f5f5; --background: #f5f5f5; --surface: #e5e5e5; --field: #ffffff;
+  --foreground: #1a1a1a; --muted: #626262; --disabled: #777777; --border: #777777;
+  --title: #1a1a1a; --title-foreground: #f5f5f5; --title-muted: #d7d7d7;
+  --selection: #1a1a1a; --selection-foreground: #f5f5f5; --accent: #1a1a1a; --hover: #e5e5e5;
+  --sidebar: #f5f5f5; --control: #f5f5f5; --shadow: transparent; --scrim: #00000066;
+  --log-normal: #626262; --log-warning: #414141; --log-error: #1a1a1a;
+  --theme-font-sans: "Berkeley Mono Local", Monaco, "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --theme-font-mono: var(--theme-font-sans); --theme-font-display: var(--font-terminal), monospace; --theme-radius: 0;
+  --body-size: 0.875rem; --body-leading: 1.6; --app-text-xs: 0.75rem; --app-text-sm: 0.875rem;
+  --heading-weight: 400; --heading-size: 2.5rem; --heading-spacing: 0;
+  --focus-width: 2px; --focus-offset: 3px; --control-font-size: 0.8125rem; --control-weight: 500;
+  --control-height: 30px; --control-padding: 4px 10px; --field-padding: 5px 8px;
+  --control-border: 1px solid var(--border); --field-border: 1px solid var(--border);
+  --control-radius: 0; --plain-radius: 0; --panel-radius: 0; --window-radius: 0;
+  --control-shadow: none; --control-active-shadow: none; --field-shadow: none;
+  --window-border: 3px double var(--border); --window-shadow: none;
+  --group-border: 1px solid var(--border); --group-shadow: none;
+  --title-padding: 0.5rem 1rem; --title-border: 0; --title-radius: 0; --title-size: 0.75rem;
+  --tab-padding: 0.5rem 1rem; --tab-radius: 0; --tab-shadow: none;
+  --shell-radius: 0; --shell-shadow: none; --dialog-shadow: 0 12px 40px #0005;
+  --app-title-padding: 0.5rem 1rem; --app-title-radius: 0; --brand-size: 0.75rem;
+  --backdrop-filter: none; --error-decoration: none;
+}
+
+html[data-theme="default"] h1 { text-transform: uppercase; }
+html[data-theme="default"] .app-frame { padding: 0; }
+html[data-theme="default"] .app-shell { min-height: 100dvh; border: 0; }
+html[data-theme="default"] .app-title,
+html[data-theme="default"] .app-toolbar,
+html[data-theme="default"] footer,
+html[data-theme="default"] .console-title,
+html[data-theme="default"] .console-kicker,
+html[data-theme="default"] th { text-transform: uppercase; letter-spacing: 0.08em; }
+html[data-theme="default"] .service-card { border: 1px solid var(--border); }
+html[data-theme="default"] .service-icon { border: 1px solid var(--border); background: var(--surface); }
+html[data-theme="default"] .sidebar-item:has([aria-current="page"]) { background: var(--foreground); color: var(--background); }
+html[data-theme="default"] main tbody tr:hover { background: var(--surface); }
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme="default"] {
+    color-scheme: dark;
+    --desktop: #111111; --background: #111111; --surface: #1c1c1c; --field: #111111;
+    --foreground: #eeeeee; --muted: #aaaaaa; --disabled: #777777; --border: #606060;
+    --title: #eeeeee; --title-foreground: #111111; --title-muted: #333333;
+    --selection: #eeeeee; --selection-foreground: #111111; --accent: #eeeeee; --hover: #1c1c1c;
+    --sidebar: #111111; --control: #1c1c1c; --log-normal: #aaaaaa; --log-warning: #cccccc; --log-error: #eeeeee;
+  }
+}
