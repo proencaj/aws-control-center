@@ -25,7 +25,7 @@ A local web interface, built with Next.js, that works like a lightweight AWS Man
 | AWS access | AWS SDK for JavaScript v3, one modular client per service (`@aws-sdk/client-s3`, `@aws-sdk/client-ec2`, ...) |
 | Styling | Tailwind CSS |
 | UI components | shadcn/ui (copied into the repo, only what is used) |
-| Icons | `lucide-react`, grayscale, 16px in navigation |
+| Icons | `lucide-react`, 16px in navigation |
 | Forms / validation | Native forms + Server Actions, `zod` for input validation |
 | Tests | Vitest, `aws-sdk-client-mock` for SDK calls |
 | Lint / format | ESLint (Next.js config), Prettier |
@@ -43,7 +43,11 @@ AWS_SESSION_TOKEN=     # optional, for temporary credentials
 AWS_REGION=us-east-1   # default region, the UI can override per request
 ```
 
-The SDK picks these up through its default credential chain. Do not pass keys manually to clients.
+Without `accounts.json` the SDK picks these up through its default credential chain.
+
+For several accounts, copy `accounts.example.json` to `accounts.json` (git-ignored, excluded from the image). Each entry has `id` (12-digit account id), `name`, `accessKeyId`, `secretAccessKey` and optional `sessionToken`. The file is read once at startup, so restart after editing. The account is selected in the top bar and stored in the `account` cookie. Switching accounts resets all workspace tabs. It replaces the env vars above while present.
+
+Credentials are read only in `lib/aws/accounts.ts` and handed to clients by `lib/aws/clients.ts`. Do not pass keys anywhere else.
 
 Docker Compose injects `.env.local` at runtime via `env_file`. `.dockerignore` excludes `.env*`, so credentials are never baked into the image.
 
@@ -113,11 +117,12 @@ Later candidates: CloudWatch Logs, SQS, SNS, Secrets Manager.
 
 ## Style
 
-- **Minimalist.** Plain layouts, generous whitespace, thin borders, no shadows, gradients or decorative elements.
-- **Grayscale only.** Colors range from white to black. No accent, brand or status colors (no red, green, amber, blue). Convey state with text, weight, borders and icons instead.
-- **Light and dark mode.** Both are required on every screen. Follow the system preference (`prefers-color-scheme`). Use Tailwind `dark:` variants and define colors once as CSS variables in `app/globals.css`, so no component hardcodes a color.
-- **Destructive actions** are marked by wording and the confirm dialog, not by color.
-- Use Tailwind's `neutral` or `zinc` scale only. Never `slate`, `red`, `green` or any other hue.
+- **Environment-selected themes.** `APP_THEME` accepts `default`, `apple`, `win95`, or `wow`; missing or invalid values use `default`. Theme selection is server-only and applies through the `data-theme` attribute on `<html>`.
+- **Complete theme packages.** Each theme owns its colors, typography, controls, surfaces, favicon, and cursor. `default` is the original monochrome terminal design; `apple` uses system Apple-style typography and rounded blue-accented surfaces; `win95` uses pixel cursors and beveled controls; `wow` uses open-license fantasy fonts, parchment/stone surfaces, and an original gauntlet cursor.
+- **Light and dark mode.** Both are required on every screen, following `prefers-color-scheme`. Define semantic colors in the corresponding file under `app/themes/`; components use names such as `bg-surface`, `bg-field`, and `bg-selection`.
+- **Shared classes.** `console-window`, `console-title`, `group-box`, `raised`, `sunken`, `btn`, and `sheet-tab` retain their names for compatibility across themes. Plain `button`, `input`, `select`, and `textarea` are styled globally. Preserve visible keyboard focus, readable contrast, and responsive layouts.
+- **Status** is conveyed with text, weight and icons, not hue. Destructive actions are marked by wording and the confirm dialog.
+- Use original or open-source icons; do not copy Apple or AWS logos.
 
 ## Conventions
 

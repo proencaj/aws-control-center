@@ -70,15 +70,15 @@ export default async function BucketPage({
             name="prefix"
             defaultValue={prefix}
             placeholder="Find objects by key prefix"
-            className="w-full border border-border bg-background px-3 py-2"
+            className="w-full"
           />
         </label>
-        <button className="border border-border px-3 py-2 hover:bg-surface">
+        <button>
           Find objects
         </button>
         <Link
           href={objectsUrl(bucket, prefix, next)}
-          className="border border-border px-3 py-2 hover:bg-surface"
+          className="btn"
         >
           Refresh
         </Link>

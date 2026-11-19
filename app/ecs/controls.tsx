@@ -2,10 +2,8 @@
 import { useRef, useState } from "react";
 import { ActionForm } from "@/components/action-form";
 
-export const inputClass =
-  "w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground";
-export const buttonClass =
-  "rounded-md border border-border px-3 py-2 text-sm hover:bg-surface disabled:opacity-40";
+export const inputClass = "w-full";
+export const buttonClass = "";
 export type FormAction = (
   previous: { error?: string; message?: string },
   data: FormData,
@@ -139,7 +137,7 @@ export function ResourceInput({
 }
 export function Submit({ children = "Save" }: { children?: React.ReactNode }) {
   return (
-    <button className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background">
+    <button className="font-bold">
       {children}
     </button>
   );
@@ -208,10 +206,10 @@ export function ConfirmSubmit({
       </button>
       <dialog
         ref={dialog}
-        className="m-auto max-w-lg rounded-md border border-border bg-background p-6 text-foreground backdrop:bg-foreground/40"
+        className="console-window m-auto max-w-lg text-foreground"
       >
-        <div className="space-y-4">
-          <h3 className="font-medium">{label}</h3>
+        <div className="space-y-4 p-4">
+          <h3 className="font-bold">{label}</h3>
           <p className="text-sm">
             This can change running workloads or remove configuration. Type{" "}
             <strong>{resourceName}</strong> to confirm.

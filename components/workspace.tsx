@@ -1,9 +1,10 @@
 "use client";
 
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { Cloud, Shield, Terminal, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { setRegion } from "@/app/actions";
+import { setAccount, setRegion } from "@/app/actions";
+import { AccountSelect } from "@/components/account-select";
 import { RegionSelect } from "@/components/region-select";
 import { Sidebar } from "@/components/sidebar";
 
@@ -75,10 +76,16 @@ export function WorkspaceShell({
   children,
   initialRegion,
   regions,
+  accounts,
+  currentAccountId,
+  identity,
 }: {
   children: React.ReactNode;
   initialRegion: string;
   regions: string[];
+  accounts: { id: string; name: string }[];
+  currentAccountId?: string;
+  identity?: string;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -225,6 +232,19 @@ export function WorkspaceShell({
     await activate(next);
   }
 
+  // Tabs, cached pages and URLs all belong to one account, so switching drops them.
+  async function changeAccount(accountId: string) {
+    const data = new FormData();
+    data.set("account", accountId);
+    await setAccount(data);
+    // Keep the active tab id. The route still carries it until the navigation lands,
+    // and a new id would make the sync effect re-add the old tab.
+    const next: Workspace = { ...active, href: workspaceHref("/", active.id, active.region), service: "directory", title: "Directory", lastActive: ++activationOrder.current };
+    setCached({});
+    setTabs([next]);
+    router.push(next.href, { scroll: false });
+  }
+
   async function changeRegion(region: string) {
     const root = active.service === "directory" ? "/" : `/${active.service}`;
     const href = workspaceHref(root, active.id, region);
@@ -290,6 +310,8 @@ export function WorkspaceShell({
     void activate(tabs[next]);
   }
 
+  const accountName = accounts.find((account) => account.id === currentAccountId)?.name;
+
   const context: WorkspaceContextValue = {
     activeId,
     activeRegion: active.region,
@@ -300,24 +322,40 @@ export function WorkspaceShell({
 
   return (
     <WorkspaceContext.Provider value={context}>
-      <div className="flex min-h-screen flex-col bg-background text-foreground antialiased md:flex-row">
-        <Sidebar />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface px-5 py-3 lg:px-8">
-            <span className="console-kicker">AWS / Resource console</span>
-            <RegionSelect regions={regions} current={active.region} onChange={changeRegion} />
-          </header>
-          <div role="tablist" aria-label="Open workspaces" onKeyDown={tabKeyDown} className="flex max-w-full overflow-x-auto border-b border-border bg-background md:sticky md:top-0 md:z-10">
+      <div className="app-frame min-h-screen p-2 md:p-4">
+        <div className="console-window app-shell flex min-h-[calc(100dvh-2rem)] flex-col">
+          <div className="console-title app-title">
+            <span className="app-brand flex items-center gap-2">
+              <span className="brand-icon brand-default" aria-hidden><Terminal size={20} /></span>
+              <span className="brand-icon brand-apple" aria-hidden><Cloud size={20} /></span>
+              <span className="brand-icon brand-win95" aria-hidden>▣</span>
+              <span className="brand-icon brand-wow brand-emblem" aria-hidden><Shield size={22} /></span>
+              AWS Control Center
+            </span>
+            <span>{accountName ?? "Personal workspace"}</span>
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col md:flex-row">
+            <Sidebar />
+            <div className="flex min-w-0 flex-1 flex-col">
+              <header className="app-toolbar flex flex-wrap items-center justify-between gap-3 px-5 py-3">
+                <span className="console-kicker">Resource console</span>
+                <div className="flex flex-wrap items-center gap-3">
+                  {identity && <span className="text-sm" title={identity}>Identity <strong>{identity.length > 20 ? `${identity.slice(0, 17)}...` : identity}</strong></span>}
+                  {currentAccountId && <AccountSelect accounts={accounts} current={currentAccountId} onChange={changeAccount} />}
+                  <RegionSelect regions={regions} current={active.region} onChange={changeRegion} />
+                </div>
+              </header>
+          <div role="tablist" aria-label="Open workspaces" onKeyDown={tabKeyDown} className="workspace-tabs flex max-w-full gap-1 overflow-x-auto p-2 md:sticky md:top-0 md:z-10">
             {tabs.map((tab) => (
-              <div key={tab.id} className="flex shrink-0 border-r border-border" role="presentation">
-                <button role="tab" data-workspace={tab.id} tabIndex={tab.id === activeId ? 0 : -1} aria-selected={tab.id === activeId} onClick={() => void activate(tab)} className="max-w-56 truncate px-4 py-2 text-xs text-muted hover:bg-surface aria-selected:bg-foreground aria-selected:text-background">
+              <div key={tab.id} className="sheet-tab flex shrink-0 items-center" role="presentation" data-selected={tab.id === activeId}>
+                <button role="tab" data-workspace={tab.id} tabIndex={tab.id === activeId ? 0 : -1} aria-selected={tab.id === activeId} onClick={() => void activate(tab)} className="plain max-w-56 truncate bg-transparent px-1 text-sm shadow-none">
                   {tab.title}
                 </button>
-                <button aria-label={`Close ${tab.title}`} onClick={() => void close(tab.id)} className="px-2 text-muted hover:bg-surface hover:text-foreground"><X size={14} /></button>
+                <button aria-label={`Close ${tab.title}`} onClick={() => void close(tab.id)} className="plain bg-transparent px-1 shadow-none"><X size={12} /></button>
               </div>
             ))}
           </div>
-          <main className="flex-1 px-5 py-8 lg:px-8">
+          <main className="workspace-content relative z-0 min-w-0 flex-1 px-4 py-6 lg:px-8 lg:py-8">
             {tabs.map((tab) => {
               const routeOwnsTab = routeTabId === tab.id;
               const content = routeOwnsTab && (tab.href !== routeHref || !cached[tab.id]) ? children : cached[tab.id];
@@ -330,7 +368,9 @@ export function WorkspaceShell({
               );
             })}
           </main>
-          <footer className="flex flex-wrap justify-between gap-2 border-t border-border px-5 py-2 text-xs text-muted lg:px-8"><span>LOCAL CONSOLE</span><span>EC2 / ECS / LOGS / S3</span></footer>
+              <footer className="flex gap-1 p-1 text-xs"><span className="status-field flex-1">Local console</span><span className="status-field hidden sm:block">EC2 / ECS / Logs / S3</span></footer>
+            </div>
+          </div>
         </div>
       </div>
     </WorkspaceContext.Provider>

@@ -133,7 +133,7 @@ export async function ScalingView({
             {policiesResult.data.resources.map((p) => (
               <details
                 key={p.PolicyARN}
-                className="space-y-3 rounded-md border border-border p-4"
+                className="group-box space-y-3 p-4"
               >
                 <summary className="cursor-pointer text-sm">
                   {p.PolicyName}{" "}
@@ -247,7 +247,7 @@ export async function ScalingView({
             {schedulesResult.data.resources.map((s) => (
               <details
                 key={s.ScheduledActionARN}
-                className="space-y-4 rounded-md border border-border p-4"
+                className="group-box space-y-4 p-4"
               >
                 <summary className="cursor-pointer text-sm">
                   {s.ScheduledActionName}

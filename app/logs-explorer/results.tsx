@@ -112,8 +112,8 @@ export function Results({
           data-match={index}
           className={
             index === selected
-              ? "bg-foreground text-background outline outline-foreground"
-              : "bg-surface text-foreground underline"
+              ? "bg-selection text-selection-foreground"
+              : "bg-field text-foreground underline"
           }
         >
           {text.slice(match.start, match.end)}
@@ -143,7 +143,6 @@ export function Results({
               setView(event.target.value);
               resetSearch();
             }}
-            className="border border-border bg-background p-2"
           >
             <option value="console">Console</option>
             <option value="table">Table</option>
@@ -158,7 +157,7 @@ export function Results({
               setTerm(event.target.value);
               resetSearch();
             }}
-            className="ml-2 border border-border bg-background p-2"
+            className="ml-2"
           />
         </label>
         <label>
@@ -186,14 +185,12 @@ export function Results({
         <button
           disabled={!matches.length}
           onClick={() => jump(-1)}
-          className="border border-border p-2 disabled:opacity-40"
         >
           Previous match
         </button>
         <button
           disabled={!matches.length}
           onClick={() => jump(1)}
-          className="border border-border p-2 disabled:opacity-40"
         >
           Next match
         </button>
@@ -241,7 +238,7 @@ export function Results({
                 </pre>
                 {row["@ptr"] && (
                   <button
-                    className="sticky right-0 shrink-0 border border-border bg-background px-2 py-1"
+                    className="sticky right-0 shrink-0"
                     onClick={() => onContext(row["@ptr"])}
                   >
                     View context

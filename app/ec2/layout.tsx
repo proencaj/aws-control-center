@@ -20,6 +20,7 @@ export default function Ec2Layout({ children }: { children: React.ReactNode }) {
         <nav aria-label="EC2 resources" className="console-tabs text-sm">
           <Link href="/ec2">Instances</Link>
           <Link href="/ec2/security-groups">Security groups</Link>
+          <Link href="/ec2/auto-scaling-groups">Auto Scaling groups</Link>
         </nav>
       </div>
       {children}

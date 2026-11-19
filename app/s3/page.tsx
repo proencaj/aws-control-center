@@ -3,7 +3,7 @@ import { listBuckets } from "@/lib/s3";
 import { attempt } from "@/lib/aws/errors";
 import { ErrorNotice } from "@/components/error-notice";
 import { objectsUrl } from "./options";
-import { BucketSearch } from "./bucket-search";
+import { FilterSearch } from "@/components/filter-search";
 
 export default async function BucketsPage({
   searchParams,
@@ -23,19 +23,24 @@ export default async function BucketsPage({
         </div>
         <Link
           href={`/s3?${new URLSearchParams({ ...(prefix ? { prefix } : {}), ...(next ? { next } : {}) })}`}
-          className="border border-border px-3 py-2 text-xs hover:bg-surface"
+          className="btn"
         >
           Refresh
         </Link>
       </div>
-      <BucketSearch prefix={prefix} />
+      <FilterSearch
+        param="prefix"
+        value={prefix}
+        label="Bucket name prefix"
+        placeholder="Find buckets by name prefix"
+      />
       {"error" in result ? (
         <ErrorNotice message={result.error} />
       ) : (
         <>
           <div className="console-window overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <caption className="border-b border-border bg-surface px-4 py-2 text-left text-xs uppercase">
+              <caption className="border-b border-border bg-surface px-4 py-1 text-left text-xs font-bold">
                 {result.data.buckets.length} buckets on this page / General
                 purpose
               </caption>

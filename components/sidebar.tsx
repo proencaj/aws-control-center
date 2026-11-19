@@ -32,54 +32,41 @@ export function Sidebar() {
   );
 
   return (
-    <aside className="flex w-full shrink-0 flex-col gap-5 border-b border-border bg-surface p-4 md:sticky md:top-0 md:h-dvh md:w-60 md:self-start md:overflow-y-auto md:border-r md:border-b-0">
-      <span className="border-b-4 border-double border-border px-2 pb-4 font-display text-3xl leading-none uppercase">
-        AWS
-        <br />
-        Control Center
-      </span>
-
-      <label className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-sm focus-within:border-foreground">
-        <Search size={16} className="text-muted" />
+    <aside className="app-sidebar flex w-full shrink-0 flex-col gap-4 p-3 md:sticky md:top-0 md:min-h-[calc(100dvh-6rem)] md:w-60 md:self-start">
+      <label className="sidebar-search flex items-center gap-2 px-2 py-1 text-sm">
+        <Search size={16} />
         <input
           type="search"
           aria-label="Search services"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search services"
-          className="w-full bg-transparent outline-none placeholder:text-muted"
+          className="w-full bg-transparent p-0 shadow-none outline-none"
         />
       </label>
 
-      <div className="space-y-2">
-        <p className="console-kicker px-2">System menu</p>
-        <nav
-          aria-label="Services"
-          className="flex flex-wrap gap-1 text-sm md:flex-col"
-        >
-          {visible.map(({ label, href, icon: Icon }) => (
-            <div
-              key={href}
-              className="flex border border-transparent text-muted hover:border-border hover:text-foreground has-[button[aria-current=page]]:border-foreground has-[button[aria-current=page]]:bg-foreground has-[button[aria-current=page]]:text-background"
+      <p className="px-2 text-xs font-semibold text-muted">Services</p>
+      <nav
+        aria-label="Services"
+        className="flex min-h-0 flex-1 flex-wrap content-start gap-1 text-sm md:flex-col md:flex-nowrap md:overflow-y-auto"
+      >
+        {visible.map(({ label, href, icon: Icon }) => (
+          <div
+            key={href}
+            className="sidebar-item flex items-center"
+          >
+            <button
+              aria-current={pathname === href || (href !== "/" && pathname.startsWith(href)) ? "page" : undefined}
+              onClick={() => openService(href)}
+              className="plain flex flex-1 items-center gap-2.5 bg-transparent px-2 py-2 text-left shadow-none"
             >
-              <button
-                aria-current={pathname === href || (href !== "/" && pathname.startsWith(href)) ? "page" : undefined}
-                onClick={() => openService(href)}
-                className="flex flex-1 items-center gap-2 px-2 py-2 text-left"
-              >
-                <Icon size={16} />{label}
-              </button>
-              <button aria-label={`Open another ${label} tab`} title="Open in new tab" onClick={() => openService(href, true)} className="px-2"><Plus size={14} /></button>
-            </div>
-          ))}
-          {visible.length === 0 && (
-            <p className="px-2 py-1.5 text-muted">No results</p>
-          )}
-        </nav>
-      </div>
-      <p className="mt-auto hidden border-t border-border px-2 pt-4 text-xs text-muted md:block">
-        Select a service to browse its resources.
-      </p>
+              <Icon size={16} />{label}
+            </button>
+            <button aria-label={`Open another ${label} tab`} title="Open in new tab" onClick={() => openService(href, true)} className="btn-icon m-px p-0.5"><Plus size={12} /></button>
+          </div>
+        ))}
+        {visible.length === 0 && <p className="px-2 py-1">No results</p>}
+      </nav>
     </aside>
   );
 }

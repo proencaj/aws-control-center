@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { WorkspaceShell } from "@/components/workspace";
+import { getAccount, listAccounts } from "@/lib/aws/accounts";
+import { getCallerIdentity, identityName } from "@/lib/sts";
 import { getRegion } from "@/lib/aws/clients";
 import { listRegions } from "@/lib/ec2";
+import { getTheme, themeIcon } from "@/lib/theme";
 import "./globals.css";
+import "./themes/default.css";
+import "./themes/apple.css";
+import "./themes/win95.css";
+import "./themes/wow.css";
 
 const terminal = localFont({
   src: "./fonts/VT323-Regular.ttf",
@@ -12,30 +19,28 @@ const terminal = localFont({
   display: "swap",
 });
 
-const berkeley = localFont({
-  src: [
-    {
-      path: "./fonts/BerkeleyMono-Regular.ttf",
-      weight: "400",
-      style: "normal",
-    },
-    { path: "./fonts/BerkeleyMono-Bold.ttf", weight: "700", style: "normal" },
-    { path: "./fonts/BerkeleyMono-Italic.ttf", weight: "400", style: "italic" },
-    {
-      path: "./fonts/BerkeleyMono-BoldItalic.ttf",
-      weight: "700",
-      style: "italic",
-    },
-  ],
-  variable: "--font-berkeley",
+const cinzel = localFont({
+  src: "../public/fonts/cinzel.ttf",
+  variable: "--font-cinzel",
+  weight: "400 900",
   display: "swap",
-  fallback: ["Monaco", "Consolas", "monospace"],
 });
 
-export const metadata: Metadata = {
-  title: "AWS Control Center",
-  description: "A lightweight console for your AWS account",
-};
+const crimson = localFont({
+  src: "../public/fonts/crimson-text.ttf",
+  variable: "--font-crimson",
+  weight: "400",
+  display: "swap",
+});
+
+export function generateMetadata(): Metadata {
+  const theme = getTheme();
+  return {
+    title: "AWS Control Center",
+    description: "A lightweight console for your AWS account",
+    icons: { icon: themeIcon(theme) },
+  };
+}
 
 async function loadRegions() {
   try {
@@ -46,17 +51,30 @@ async function loadRegions() {
   }
 }
 
+async function loadIdentityName() {
+  try {
+    return identityName((await getCallerIdentity()).arn ?? "");
+  } catch {
+    return undefined;
+  }
+}
+
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [current, regions] = await Promise.all([getRegion(), loadRegions()]);
+  const theme = getTheme();
+  const [current, regions, account, identity] = await Promise.all([getRegion(), loadRegions(), getAccount(), loadIdentityName()]);
 
   return (
-    <html lang="en" className={`${terminal.variable} ${berkeley.variable}`}>
+    <html
+      lang="en"
+      data-theme={theme}
+      className={`${terminal.variable} ${cinzel.variable} ${crimson.variable}`}
+    >
       <body>
-        <WorkspaceShell initialRegion={current} regions={regions}>{children}</WorkspaceShell>
+        <WorkspaceShell initialRegion={current} regions={regions} accounts={listAccounts()} currentAccountId={account?.id} identity={identity}>{children}</WorkspaceShell>
       </body>
     </html>
   );

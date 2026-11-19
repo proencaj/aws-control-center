@@ -322,7 +322,7 @@ export function TaskDefinitionEditor({
             {containers.map((c, index) => (
               <section
                 key={index}
-                className="space-y-4 rounded-md border border-border p-4"
+                className="group-box space-y-4 p-4"
               >
                 <div className="grid gap-4 md:grid-cols-2">
                   <Input
@@ -626,7 +626,7 @@ export function WorkloadEditor({
             Configure awsvpc networking (required by Fargate)
           </label>
           {!!document.networkConfiguration && (
-            <div className="space-y-4 rounded-md border border-border p-4">
+            <div className="group-box space-y-4 p-4">
               <PickField
                 label="Subnet IDs (comma separated)"
                 region={region}
@@ -665,7 +665,7 @@ export function WorkloadEditor({
               {lb.map((entry, i) => (
                 <div
                   key={i}
-                  className="space-y-3 rounded-md border border-border p-4"
+                  className="group-box space-y-3 p-4"
                 >
                   <PickField
                     label="Target group ARN"

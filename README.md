@@ -16,9 +16,21 @@ docker compose exec app npm run build
 
 After pulling dependency changes, use `docker compose up --build -V` to refresh the dependency volumes. Tests mock AWS clients and do not contact an account. Development and production use real AWS APIs only.
 
-## Local fonts
+## Themes and local fonts
 
-The app serves Berkeley Mono through `next/font/local`. Before running or building a fresh checkout, copy your installed `BerkeleyMono-Regular.ttf`, `BerkeleyMono-Bold.ttf`, `BerkeleyMono-Italic.ttf`, and `BerkeleyMono-BoldItalic.ttf` into `app/fonts/`. These personal font files are git-ignored. The bundled VT323 font is used for retro display headings.
+Set `APP_THEME` in `.env.local` to select the complete visual theme:
+
+```dotenv
+APP_THEME=default # default, apple, win95, or wow
+```
+
+The value controls typography, colors, surfaces, controls, favicon, and cursor. Missing, empty, or unsupported values use `default`. After changing it, recreate the app container so Docker Compose reloads the environment file:
+
+```sh
+docker compose up -d --force-recreate app
+```
+
+The default theme uses locally installed Berkeley Mono when available and falls back to the system monospace stack. Private font files are not required. VT323, Cinzel, and Crimson Text are self-hosted with their open-font licenses. Apple system fonts are referenced locally and are never bundled.
 
 ## ECS console
 

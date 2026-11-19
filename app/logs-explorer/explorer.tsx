@@ -6,9 +6,8 @@ import { Results } from "./results";
 import { ContextDialog } from "./context";
 import { useWorkspaceActive } from "@/components/workspace";
 
-const inputClass = "border border-border bg-background p-2 text-sm";
-const buttonClass =
-  "border border-border px-3 py-2 text-xs disabled:opacity-40 hover:bg-surface";
+const inputClass = "";
+const buttonClass = "";
 const defaultQuery =
   "fields @timestamp, @message\n| sort @timestamp desc\n| limit 1000";
 type Run = {
@@ -395,7 +394,7 @@ export function Explorer({
                 <button
                   type="button"
                   key={group}
-                  className="max-w-full break-all border border-border p-1 text-xs"
+                  className="max-w-full break-all text-xs"
                   onClick={() =>
                     setSelected(selected.filter((item) => item !== group))
                   }
@@ -480,7 +479,7 @@ export function Explorer({
                   rows={7}
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  className="w-full resize-y border border-border bg-background p-3 font-mono text-sm leading-6"
+                  className="w-full resize-y font-mono text-sm leading-6"
                 />
               </label>
               <div className="flex flex-wrap items-center gap-3 text-xs">
@@ -511,7 +510,7 @@ export function Explorer({
             </fieldset>
             <div className="flex gap-2">
               <button
-                className="border border-foreground bg-foreground px-4 py-2 text-sm text-background disabled:opacity-40"
+                className="font-bold"
                 disabled={running || busy || !selected.length}
               >
                 Run query

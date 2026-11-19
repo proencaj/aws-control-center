@@ -1,0 +1,78 @@
+html[data-theme="win95"] {
+  color-scheme: light;
+  --desktop: #008080; --background: #c0c0c0; --surface: #c0c0c0; --field: #ffffff;
+  --foreground: #000000; --muted: #404040; --disabled: #808080; --border: #808080;
+  --title: #000080; --title-foreground: #ffffff; --title-muted: #ffffff;
+  --selection: #000080; --selection-foreground: #ffffff; --accent: #000000; --hover: #dfdfdf;
+  --sidebar: #c0c0c0; --control: #c0c0c0; --shadow: transparent; --scrim: #00000066;
+  --bevel-light: #ffffff; --bevel-soft: #dfdfdf; --bevel-shadow: #808080; --bevel-dark: #0a0a0a;
+  --log-normal: #404040; --log-warning: #000000; --log-error: #000000;
+  --theme-font-sans: "MS Sans Serif", Tahoma, Arial, sans-serif;
+  --theme-font-mono: "Berkeley Mono Local", Monaco, Consolas, monospace;
+  --theme-font-display: var(--theme-font-sans); --theme-radius: 0;
+  --body-size: 14px; --body-leading: 1.4; --app-text-xs: 0.75rem; --app-text-sm: 0.875rem;
+  --heading-weight: 700; --heading-size: 18px; --heading-spacing: 0;
+  --focus-width: 1px; --focus-offset: -4px; --control-font-size: 13px; --control-weight: 400;
+  --control-height: 23px; --control-padding: 3px 12px; --field-padding: 3px 4px;
+  --control-border: 0; --field-border: 0; --control-radius: 0; --plain-radius: 0; --panel-radius: 0; --window-radius: 0;
+  --control-shadow: inset -1px -1px var(--bevel-dark), inset 1px 1px var(--bevel-light), inset -2px -2px var(--bevel-shadow), inset 2px 2px var(--bevel-soft);
+  --control-active-shadow: inset -1px -1px var(--bevel-light), inset 1px 1px var(--bevel-dark), inset -2px -2px var(--bevel-soft), inset 2px 2px var(--bevel-shadow);
+  --field-shadow: inset -1px -1px var(--bevel-light), inset 1px 1px var(--bevel-shadow), inset -2px -2px var(--bevel-soft), inset 2px 2px var(--bevel-dark);
+  --window-border: 0; --window-shadow: inset -1px -1px var(--bevel-dark), inset 1px 1px var(--bevel-soft), inset -2px -2px var(--bevel-shadow), inset 2px 2px var(--bevel-light);
+  --group-border: 1px solid var(--bevel-shadow); --group-shadow: 1px 1px var(--bevel-light);
+  --title-padding: 2px 4px; --title-border: 0; --title-radius: 0; --title-size: 13px;
+  --tab-padding: 3px 10px; --tab-radius: 0; --tab-shadow: var(--control-shadow);
+  --shell-radius: 0; --shell-shadow: none; --dialog-shadow: 8px 8px 0 #0005;
+  --app-title-padding: 2px 4px; --app-title-radius: 0; --brand-size: 13px;
+  --backdrop-filter: none; --error-decoration: underline;
+}
+
+html[data-theme="win95"] button:not(.plain):active:not(:disabled) { padding: 4px 11px 2px 13px; }
+html[data-theme="win95"] button:disabled { text-shadow: 1px 1px var(--bevel-light); }
+html[data-theme="win95"] input:focus-visible,
+html[data-theme="win95"] select:focus-visible,
+html[data-theme="win95"] textarea:focus-visible { outline-offset: 2px; }
+html[data-theme="win95"] .console-window { padding: 3px; }
+html[data-theme="win95"] .app-frame { padding: 1rem; }
+html[data-theme="win95"] .app-shell { min-height: calc(100dvh - 2rem); }
+html[data-theme="win95"] .brand-win95 { width: 16px; height: 16px; align-items: center; justify-content: center; background: #fff; color: #000080; box-shadow: inset -1px -1px #000, inset 1px 1px #fff; }
+html[data-theme="win95"] .sheet-tab { margin-top: 2px; }
+html[data-theme="win95"] .sheet-tab[data-selected="true"] { z-index: 1; margin-top: 0; margin-bottom: -2px; padding-top: 5px; padding-bottom: 5px; }
+html[data-theme="win95"] .workspace-tabs { gap: 2px; padding-bottom: 0; border-bottom: 2px solid var(--bevel-light); box-shadow: 0 1px var(--bevel-shadow); }
+html[data-theme="win95"] .sidebar-item { border-radius: 0; }
+html[data-theme="win95"] .sidebar-item:has([aria-current="page"]) { outline: 1px dotted currentColor; outline-offset: -3px; }
+html[data-theme="win95"] .service-card { box-shadow: var(--control-shadow); }
+html[data-theme="win95"] .service-icon { box-shadow: var(--field-shadow); }
+html[data-theme="win95"] th { box-shadow: inset -1px -1px var(--bevel-shadow), inset 1px 1px var(--bevel-light); }
+html[data-theme="win95"] main tbody tr:hover { background: var(--selection); color: var(--selection-foreground); }
+html[data-theme="win95"] main tbody tr:hover :where(a, .text-muted) { color: inherit; }
+html[data-theme="win95"] summary { cursor: default; }
+
+@media (pointer: fine) {
+  html[data-theme="win95"] body,
+  html[data-theme="win95"] button,
+  html[data-theme="win95"] select,
+  html[data-theme="win95"] summary,
+  html[data-theme="win95"] input[type="checkbox"],
+  html[data-theme="win95"] input[type="radio"],
+  html[data-theme="win95"] input[type="file"]::file-selector-button {
+    cursor: url("/cursors/windows-95-arrow.svg") 2 1, default;
+  }
+  html[data-theme="win95"] a, html[data-theme="win95"] .btn, html[data-theme="win95"] [role="link"] {
+    cursor: url("/cursors/windows-95-hand.svg") 10 1, pointer;
+  }
+  html[data-theme="win95"] input:not([type="checkbox"], [type="radio"], [type="file"]),
+  html[data-theme="win95"] textarea, html[data-theme="win95"] [contenteditable="true"] { cursor: text; }
+  html[data-theme="win95"] :is(button, input, select, textarea):disabled { cursor: not-allowed; }
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme="win95"] {
+    color-scheme: dark;
+    --desktop: #102828; --background: #303030; --surface: #303030; --field: #181818;
+    --foreground: #f0f0f0; --muted: #b8b8b8; --disabled: #7a7a7a; --border: #6a6a6a;
+    --title: #183858; --selection: #2a5a98; --hover: #484848; --sidebar: #303030; --control: #303030;
+    --bevel-light: #7a7a7a; --bevel-soft: #484848; --bevel-shadow: #141414; --bevel-dark: #000000;
+    --log-normal: #b8b8b8; --log-warning: #f0f0f0; --log-error: #f0f0f0;
+  }
+}
