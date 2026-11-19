@@ -32,8 +32,8 @@ export function Sidebar() {
   );
 
   return (
-    <aside className="flex w-full shrink-0 flex-col gap-2 p-1 md:sticky md:top-0 md:h-[calc(100dvh-3rem)] md:w-60 md:self-start">
-      <label className="sunken flex items-center gap-2 px-2 py-1 text-sm">
+    <aside className="app-sidebar flex w-full shrink-0 flex-col gap-4 p-3 md:sticky md:top-0 md:min-h-[calc(100dvh-6rem)] md:w-60 md:self-start">
+      <label className="sidebar-search flex items-center gap-2 px-2 py-1 text-sm">
         <Search size={16} />
         <input
           type="search"
@@ -45,19 +45,20 @@ export function Sidebar() {
         />
       </label>
 
+      <p className="px-2 text-xs font-semibold text-muted">Services</p>
       <nav
         aria-label="Services"
-        className="sunken flex min-h-0 flex-1 flex-wrap content-start gap-0.5 p-1 text-sm md:flex-col md:flex-nowrap md:overflow-y-auto"
+        className="flex min-h-0 flex-1 flex-wrap content-start gap-1 text-sm md:flex-col md:flex-nowrap md:overflow-y-auto"
       >
         {visible.map(({ label, href, icon: Icon }) => (
           <div
             key={href}
-            className="flex items-center has-[button[aria-current=page]]:bg-selection has-[button[aria-current=page]]:text-selection-foreground"
+            className="sidebar-item flex items-center"
           >
             <button
               aria-current={pathname === href || (href !== "/" && pathname.startsWith(href)) ? "page" : undefined}
               onClick={() => openService(href)}
-              className="plain flex flex-1 items-center gap-2 bg-transparent px-2 py-1 text-left shadow-none"
+              className="plain flex flex-1 items-center gap-2.5 bg-transparent px-2 py-2 text-left shadow-none"
             >
               <Icon size={16} />{label}
             </button>

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { Cloud, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { setAccount, setRegion } from "@/app/actions";
 import { AccountSelect } from "@/components/account-select";
@@ -322,38 +322,34 @@ export function WorkspaceShell({
 
   return (
     <WorkspaceContext.Provider value={context}>
-      <div className="min-h-screen p-1 md:p-2">
-        <div className="console-window flex min-h-[calc(100vh-1rem)] flex-col md:min-h-[calc(100vh-1rem)]">
-          <div className="console-title">
-            <span>AWS Control Center{accountName ? ` / ${accountName}` : ""}</span>
-            <span aria-hidden className="flex gap-1">
-              <span className="raised block h-3.5 w-4" />
-              <span className="raised block h-3.5 w-4" />
-              <span className="raised block h-3.5 w-4" />
-            </span>
+      <div className="min-h-screen p-2 md:p-4">
+        <div className="console-window app-shell flex min-h-[calc(100dvh-2rem)] flex-col">
+          <div className="console-title app-title">
+            <span className="flex items-center gap-2"><Cloud size={20} className="text-accent" />AWS Control Center</span>
+            <span>{accountName ?? "Personal workspace"}</span>
           </div>
           <div className="flex min-w-0 flex-1 flex-col md:flex-row">
             <Sidebar />
             <div className="flex min-w-0 flex-1 flex-col">
-              <header className="flex flex-wrap items-center justify-between gap-3 px-2 py-1.5">
-                <span className="console-kicker">AWS / Resource console</span>
+              <header className="app-toolbar flex flex-wrap items-center justify-between gap-3 px-5 py-3">
+                <span className="console-kicker">Resource console</span>
                 <div className="flex flex-wrap items-center gap-3">
                   {identity && <span className="text-sm" title={identity}>Identity <strong>{identity.length > 20 ? `${identity.slice(0, 17)}...` : identity}</strong></span>}
                   {currentAccountId && <AccountSelect accounts={accounts} current={currentAccountId} onChange={changeAccount} />}
                   <RegionSelect regions={regions} current={active.region} onChange={changeRegion} />
                 </div>
               </header>
-          <div role="tablist" aria-label="Open workspaces" onKeyDown={tabKeyDown} className="flex max-w-full gap-0.5 overflow-x-auto px-1 pt-1 md:sticky md:top-0 md:z-10">
+          <div role="tablist" aria-label="Open workspaces" onKeyDown={tabKeyDown} className="workspace-tabs flex max-w-full gap-1 overflow-x-auto p-2 md:sticky md:top-0 md:z-10">
             {tabs.map((tab) => (
               <div key={tab.id} className="sheet-tab flex shrink-0 items-center" role="presentation" data-selected={tab.id === activeId}>
-                <button role="tab" data-workspace={tab.id} tabIndex={tab.id === activeId ? 0 : -1} aria-selected={tab.id === activeId} onClick={() => void activate(tab)} className="plain max-w-56 truncate bg-transparent px-1 text-[13px] shadow-none">
+                <button role="tab" data-workspace={tab.id} tabIndex={tab.id === activeId ? 0 : -1} aria-selected={tab.id === activeId} onClick={() => void activate(tab)} className="plain max-w-56 truncate bg-transparent px-1 text-sm shadow-none">
                   {tab.title}
                 </button>
                 <button aria-label={`Close ${tab.title}`} onClick={() => void close(tab.id)} className="plain bg-transparent px-1 shadow-none"><X size={12} /></button>
               </div>
             ))}
           </div>
-          <main className="raised relative z-0 mx-1 min-w-0 flex-1 px-4 py-5 lg:px-6">
+          <main className="workspace-content relative z-0 min-w-0 flex-1 px-4 py-6 lg:px-8 lg:py-8">
             {tabs.map((tab) => {
               const routeOwnsTab = routeTabId === tab.id;
               const content = routeOwnsTab && (tab.href !== routeHref || !cached[tab.id]) ? children : cached[tab.id];

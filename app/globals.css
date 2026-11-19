@@ -1,51 +1,69 @@
 @import "tailwindcss";
 
-/* Windows 95 theme. Every color lives here; components use the semantic names. */
+/* Local system fonts only: Apple fonts are never redistributed. */
+@font-face {
+  font-family: "SF Mono Local";
+  src: local("SF Mono Regular"), local("SFMono-Regular"), local("SF Mono");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "SF Mono Local";
+  src: local("SF Mono Bold"), local("SFMono-Bold");
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* Apple-inspired semantic colors, following system appearance. */
 :root {
   color-scheme: light;
-  --desktop: #008080;
-  --background: #c0c0c0;
-  --surface: #c0c0c0;
+  --desktop: #e9edf3;
+  --background: #f5f5f7;
+  --surface: #ffffff;
   --field: #ffffff;
-  --foreground: #000000;
-  --muted: #404040;
-  --disabled: #808080;
-  --border: #808080;
-  --title: #000080;
-  --title-foreground: #ffffff;
-  --selection: #000080;
+  --foreground: #1d1d1f;
+  --muted: #636366;
+  --disabled: #8e8e93;
+  --border: #d9d9df;
+  --title: #f5f5f7;
+  --title-foreground: #1d1d1f;
+  --selection: #0066cc;
   --selection-foreground: #ffffff;
-  --bevel-light: #ffffff;
-  --bevel-soft: #dfdfdf;
-  --bevel-shadow: #808080;
-  --bevel-dark: #0a0a0a;
-  --log-normal: #404040;
-  --log-warning: #000000;
-  --log-error: #000000;
+  --accent: #0066cc;
+  --hover: #edf3fc;
+  --sidebar: #eef0f5;
+  --control: #ffffff;
+  --shadow: #00000012;
+  --scrim: #00000055;
+  --log-normal: #48484a;
+  --log-warning: #854900;
+  --log-error: #b42318;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    color-scheme: dark;
-    --desktop: #102828;
-    --background: #303030;
-    --surface: #303030;
-    --field: #181818;
-    --foreground: #f0f0f0;
-    --muted: #b8b8b8;
-    --disabled: #7a7a7a;
-    --border: #6a6a6a;
-    --title: #183858;
-    --title-foreground: #ffffff;
-    --selection: #2a5a98;
-    --selection-foreground: #ffffff;
-    --bevel-light: #7a7a7a;
-    --bevel-soft: #484848;
-    --bevel-shadow: #141414;
-    --bevel-dark: #000000;
-    --log-normal: #b8b8b8;
-    --log-warning: #f0f0f0;
-    --log-error: #f0f0f0;
+  color-scheme: dark;
+  --desktop: #141416;
+  --background: #1c1c1e;
+  --surface: #242426;
+  --field: #1c1c1e;
+  --foreground: #f5f5f7;
+  --muted: #aeaeb2;
+  --disabled: #8e8e93;
+  --border: #454549;
+  --title: #2c2c2e;
+  --title-foreground: #f5f5f7;
+  --selection: #005bb5;
+  --selection-foreground: #ffffff;
+  --accent: #64aaff;
+  --hover: #29384b;
+  --sidebar: #242428;
+  --control: #38383a;
+  --shadow: #00000040;
+  --scrim: #00000088;
+  --log-normal: #d1d1d6;
+  --log-warning: #ffd60a;
+  --log-error: #ff6961;
   }
 }
 
@@ -62,11 +80,10 @@
   --color-title-foreground: var(--title-foreground);
   --color-selection: var(--selection);
   --color-selection-foreground: var(--selection-foreground);
-  --font-sans: "MS Sans Serif", Tahoma, Arial, sans-serif;
-  --font-mono:
-    var(--font-berkeley), Monaco, "SFMono-Regular", Consolas, "Liberation Mono",
-    Menlo, monospace;
-  --radius-md: 0;
+  --color-accent: var(--accent);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono Local", "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace;
+  --radius-md: 0.625rem;
 }
 
 @layer base {
@@ -75,145 +92,73 @@
     color: var(--foreground);
     font-family: var(--font-sans);
     font-size: 14px;
-    line-height: 1.4;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
   }
-
-  h1,
-  h2,
-  h3 {
-    font-weight: 700;
-  }
-
+  h1, h2, h3 { font-weight: 600; }
+  ::selection { background: var(--selection); color: var(--selection-foreground); }
   :where(a, button, input, select, textarea, summary):focus-visible {
-    outline: 1px dotted var(--foreground);
-    outline-offset: -4px;
+    outline: 3px solid var(--accent);
+    outline-offset: 3px;
   }
-
-  :where(input, select, textarea):focus-visible {
-    outline-offset: 2px;
-  }
-
-  :where(a) {
-    text-underline-offset: 0.15em;
-  }
-
-  /* Raised controls with a pressed state. */
-  button,
-  summary.btn {
-    background: var(--surface);
+  :where(a) { text-underline-offset: 0.2em; }
+  button, summary.btn {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--control);
     color: var(--foreground);
-    box-shadow:
-      inset -1px -1px var(--bevel-dark),
-      inset 1px 1px var(--bevel-light),
-      inset -2px -2px var(--bevel-shadow),
-      inset 2px 2px var(--bevel-soft);
+    box-shadow: 0 1px 2px var(--shadow);
     font-size: 13px;
-    cursor: default;
+    font-weight: 500;
+    cursor: pointer;
   }
-
-  button:not([role="tab"], [aria-current], .plain):not(.btn-icon) {
-    min-height: 23px;
-    padding: 3px 12px;
+  button:not([role="tab"], [aria-current], .plain, .btn-icon) {
+    min-height: 32px;
+    padding: 5px 12px;
   }
-
-  button:not(.plain):active:not(:disabled) {
-    box-shadow:
-      inset -1px -1px var(--bevel-light),
-      inset 1px 1px var(--bevel-dark),
-      inset -2px -2px var(--bevel-soft),
-      inset 2px 2px var(--bevel-shadow);
-    padding: 4px 11px 2px 13px;
-  }
-
-  button:disabled {
-    color: var(--disabled);
-    text-shadow: 1px 1px var(--bevel-light);
-  }
-
-  /* Sunken fields. */
+  button:not(.plain):hover:not(:disabled), summary.btn:hover { background: var(--hover); }
+  button:not(.plain):active:not(:disabled) { box-shadow: none; }
+  button:disabled { color: var(--disabled); cursor: not-allowed; box-shadow: none; }
+  button.plain { border: 0; border-radius: 6px; color: inherit; }
   :where(input:not([type="checkbox"], [type="radio"], [type="file"]), select, textarea) {
+    border: 1px solid var(--border);
+    border-radius: 8px;
     background: var(--field);
     color: var(--foreground);
     font-size: 13px;
-    padding: 3px 4px;
-    box-shadow:
-      inset -1px -1px var(--bevel-light),
-      inset 1px 1px var(--bevel-shadow),
-      inset -2px -2px var(--bevel-soft),
-      inset 2px 2px var(--bevel-dark);
+    padding: 6px 10px;
+    min-height: 32px;
   }
-
-  :where(input, select, textarea):disabled {
-    color: var(--disabled);
-    background: var(--surface);
-  }
-
-  :where(input, textarea)::placeholder {
-    color: var(--disabled);
-  }
-
-  input[type="checkbox"],
-  input[type="radio"] {
-    accent-color: var(--selection);
-  }
-
+  :where(input, select, textarea):disabled { color: var(--disabled); background: var(--background); }
+  :where(input, textarea)::placeholder { color: var(--muted); }
+  input[type="checkbox"], input[type="radio"] { accent-color: var(--selection); }
   input[type="file"]::file-selector-button {
-    margin-right: 0.5rem;
-    padding: 2px 10px;
-    background: var(--surface);
+    margin-right: 0.75rem;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--control);
     color: var(--foreground);
-    border: 0;
-    box-shadow:
-      inset -1px -1px var(--bevel-dark),
-      inset 1px 1px var(--bevel-light),
-      inset -2px -2px var(--bevel-shadow),
-      inset 2px 2px var(--bevel-soft);
+    cursor: pointer;
   }
-
-  dialog {
-    background: var(--surface);
-    color: var(--foreground);
-  }
-
-  dialog::backdrop {
-    background: color-mix(in srgb, var(--bevel-dark) 40%, transparent);
-  }
-
-  code {
-    font-family: var(--font-mono);
-    font-size: 0.9em;
-  }
+  dialog { background: var(--surface); color: var(--foreground); max-height: calc(100dvh - 2rem); overflow-y: auto; }
+  dialog::backdrop { background: var(--scrim); backdrop-filter: blur(5px); }
+  code, pre, kbd, samp { font-family: var(--font-mono); }
+  code { font-size: 0.9em; }
+  summary { cursor: pointer; }
 }
 
 @layer components {
-  .log-message {
-    color: var(--log-normal);
-    font-weight: 400;
-  }
-
-  .log-message[data-severity="warning"] {
-    color: var(--log-warning);
-    font-weight: 600;
-  }
-
-  .log-message[data-severity="error"] {
-    color: var(--log-error);
-    font-weight: 700;
-    text-decoration: underline;
-  }
-
-  /* Raised window frame: the app window, dialogs, major sections. */
+  .log-message { color: var(--log-normal); font-weight: 400; }
+  .log-message[data-severity="warning"] { color: var(--log-warning); font-weight: 600; }
+  .log-message[data-severity="error"] { color: var(--log-error); font-weight: 700; text-decoration: underline; }
   .console-window {
     min-width: 0;
     background: var(--surface);
-    padding: 3px;
-    box-shadow:
-      inset -1px -1px var(--bevel-dark),
-      inset 1px 1px var(--bevel-soft),
-      inset -2px -2px var(--bevel-shadow),
-      inset 2px 2px var(--bevel-light);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 3px 12px var(--shadow);
   }
-
   .console-title {
     display: flex;
     flex-wrap: wrap;
@@ -222,156 +167,82 @@
     gap: 0.5rem;
     background: var(--title);
     color: var(--title-foreground);
-    padding: 2px 4px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    border-radius: 13px 13px 0 0;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
   }
-
-  .console-kicker {
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  .console-heading {
-    font-size: 18px;
-    font-weight: 700;
-    line-height: 1.2;
-    overflow-wrap: anywhere;
-  }
-
-  /* Etched group box for forms and detail sections. */
-  .group-box {
-    border: 1px solid var(--bevel-shadow);
-    box-shadow: 1px 1px var(--bevel-light);
-  }
-
-  /* A link that looks like a button. */
+  .console-title > span { color: var(--muted); font-size: 13px; font-weight: 400; }
+  .console-kicker { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .console-heading { font-size: 26px; font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; overflow-wrap: anywhere; }
+  .group-box { border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
   .btn {
-    display: inline-block;
-    padding: 3px 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
     font-size: 13px;
+    font-weight: 500;
     text-decoration: none;
-    background: var(--surface);
+    background: var(--control);
     color: var(--foreground);
-    box-shadow:
-      inset -1px -1px var(--bevel-dark),
-      inset 1px 1px var(--bevel-light),
-      inset -2px -2px var(--bevel-shadow),
-      inset 2px 2px var(--bevel-soft);
+    box-shadow: 0 1px 2px var(--shadow);
   }
-
-  .btn:active {
-    box-shadow:
-      inset -1px -1px var(--bevel-light),
-      inset 1px 1px var(--bevel-dark),
-      inset -2px -2px var(--bevel-soft),
-      inset 2px 2px var(--bevel-shadow);
-  }
-
-  .sunken {
-    background: var(--field);
-    box-shadow:
-      inset -1px -1px var(--bevel-light),
-      inset 1px 1px var(--bevel-shadow),
-      inset -2px -2px var(--bevel-soft),
-      inset 2px 2px var(--bevel-dark);
-  }
-
-  .raised {
-    background: var(--surface);
-    box-shadow:
-      inset -1px -1px var(--bevel-dark),
-      inset 1px 1px var(--bevel-light),
-      inset -2px -2px var(--bevel-shadow),
-      inset 2px 2px var(--bevel-soft);
-  }
-
-  .status-field {
-    box-shadow:
-      inset 1px 1px var(--bevel-shadow),
-      inset -1px -1px var(--bevel-light);
-    padding: 2px 6px;
-  }
-
-  /* Property-sheet tabs, shared by workspace tabs and service navigation. */
+  .btn:hover { background: var(--hover); }
+  .btn:active { box-shadow: none; }
+  .sunken { background: var(--field); border: 1px solid var(--border); border-radius: 8px; }
+  .raised { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+  .status-field { color: var(--muted); padding: 4px 8px; }
   .sheet-tab {
     position: relative;
-    background: var(--surface);
-    color: var(--foreground);
-    padding: 3px 10px;
-    margin-top: 2px;
-    box-shadow:
-      inset -1px 0 var(--bevel-dark),
-      inset 1px 1px var(--bevel-light),
-      inset -2px 0 var(--bevel-shadow),
-      inset 2px 2px var(--bevel-soft);
-  }
-
-  .sheet-tab:hover {
-    background: var(--bevel-soft);
-  }
-
-  .sheet-tab[data-selected="true"],
-  .sheet-tab[aria-current="page"] {
-    z-index: 1;
-    margin-top: 0;
-    margin-bottom: -2px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    font-weight: 700;
-    background: var(--surface);
-  }
-
-  .console-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0 2px;
-    padding: 4px 4px 0;
-    border-bottom: 2px solid var(--bevel-light);
-    box-shadow: 0 1px var(--bevel-shadow);
-  }
-
-  .console-tabs a {
-    text-decoration: none;
-  }
-
-  main nav {
-    font-size: 13px;
-  }
-
-  /* Explorer detail list. */
-  table {
-    background: var(--field);
-  }
-
-  thead {
-    background: var(--surface);
-  }
-
-  th {
-    font-size: 13px;
-    font-weight: 400;
-    background: var(--surface);
-    box-shadow:
-      inset -1px -1px var(--bevel-shadow),
-      inset 1px 1px var(--bevel-light);
-  }
-
-  main tbody tr:hover {
-    background: var(--selection);
-    color: var(--selection-foreground);
-  }
-
-  main tbody tr:hover :where(a, .text-muted) {
-    color: inherit;
-  }
-
-  main dt {
+    background: transparent;
     color: var(--muted);
-    font-size: 12px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    white-space: nowrap;
   }
-
-  summary {
-    cursor: default;
+  .sheet-tab:hover { background: var(--hover); }
+  .sheet-tab[data-selected="true"], .sheet-tab[aria-current="page"] {
+    color: var(--foreground);
+    font-weight: 600;
+    background: var(--surface);
+    box-shadow: 0 1px 4px var(--shadow);
   }
+  .console-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 5px; border-radius: 8px; background: var(--sidebar); border: 1px solid var(--border); }
+  .console-tabs a { text-decoration: none; }
+  main nav { font-size: 13px; }
+  table { background: var(--field); }
+  thead { background: var(--title); }
+  th { font-size: 13px; font-weight: 600; color: var(--muted); background: var(--title); border-bottom: 1px solid var(--border); }
+  main tbody tr:hover { background: var(--hover); }
+  main dt { color: var(--muted); font-size: 13px; }
+  main a:not(.btn, .sheet-tab) { color: var(--accent); }
+  .app-shell { background: var(--background); border-radius: 12px; box-shadow: 0 12px 48px var(--shadow); }
+  .app-title { padding: 14px 20px; background: var(--sidebar); border-radius: 13px 13px 0 0; }
+  .app-title > span { color: var(--foreground); font-size: 14px; font-weight: 600; }
+  .app-sidebar { background: var(--sidebar); border-right: 1px solid var(--border); }
+  .sidebar-search { background: var(--field); border: 1px solid var(--border); border-radius: 8px; }
+  .sidebar-search input { min-width: 0; border: 0; background: transparent; }
+  .sidebar-item { border-radius: 8px; }
+  .sidebar-item:hover { background: var(--hover); }
+  .sidebar-item:has([aria-current="page"]) { background: var(--selection); color: var(--selection-foreground); }
+  .sidebar-item .btn-icon { border: 0; background: transparent; color: inherit; box-shadow: none; border-radius: 12px; padding: 5px; }
+  .workspace-tabs { background: var(--background); border-bottom: 1px solid var(--border); }
+  .workspace-content { background: var(--background); }
+  .app-toolbar { border-bottom: 1px solid var(--border); }
+  dialog.console-window { border-radius: 12px; box-shadow: 0 24px 80px var(--shadow); width: calc(100% - 2rem); }
+  dialog .console-heading { font-size: 22px; }
+  .service-card { display: flex; flex-direction: column; gap: 14px; padding: 24px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+  .service-icon { display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 14px; background: var(--hover); color: var(--accent); }
+  @media (max-width: 767px) {
+    .app-sidebar { border-right: 0; border-bottom: 1px solid var(--border); }
+    .console-heading { font-size: 24px; }
+  }
+  @media (prefers-reduced-transparency: reduce) { dialog::backdrop { backdrop-filter: none; } }
 }

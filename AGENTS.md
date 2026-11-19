@@ -117,11 +117,11 @@ Later candidates: CloudWatch Logs, SQS, SNS, Secrets Manager.
 
 ## Style
 
-- **Windows 95 theme.** Silver panels, teal desktop, navy title bars and selections, raised/sunken two-layer bevels, square corners, sans-serif UI text (`"MS Sans Serif", Tahoma, Arial`). Monospace only for logs, JSON, code and identifiers. No gradients, soft shadows or animations. Hard-edged inset `box-shadow` is allowed for bevels.
-- **Light and dark mode.** Both are required on every screen. Light is the classic palette. Dark is a coordinated adaptation (deep teal desktop, charcoal panels, blue title bars). Follow the system preference (`prefers-color-scheme`). Define colors once as CSS variables in `app/globals.css` and use the semantic names (`bg-surface`, `bg-field`, `bg-selection`). No component hardcodes a color.
-- **Shared classes.** `console-window`, `console-title`, `group-box`, `raised`, `sunken`, `btn` (link styled as a button), `sheet-tab`. Plain `button`, `input`, `select` and `textarea` are styled globally, so do not add border or background utilities to them.
+- **Apple-inspired theme.** macOS-style sidebar and workspace tabs, iOS-style grouped surfaces, rounded controls, subtle borders and shadows, neutral backgrounds, and blue accents. Use system sans-serif typography (`-apple-system`, `BlinkMacSystemFont`, SF Pro) and locally installed SF Mono for logs, JSON, code, and identifiers, with system fallbacks. Do not bundle or redistribute Apple fonts, logos, or proprietary assets.
+- **Light and dark mode.** Both are required on every screen, following `prefers-color-scheme`. Define colors once as CSS variables in `app/globals.css` and use semantic names (`bg-surface`, `bg-field`, `bg-selection`). No component hardcodes a color.
+- **Shared classes.** `console-window`, `console-title`, `group-box`, `raised`, `sunken`, `btn`, and `sheet-tab` retain their names for compatibility and render the Apple-inspired theme. Plain `button`, `input`, `select`, and `textarea` are styled globally. Preserve visible keyboard focus, readable contrast, and responsive layouts.
 - **Status** is conveyed with text, weight and icons, not hue. Destructive actions are marked by wording and the confirm dialog.
-- Do not bundle Microsoft fonts, logos or extracted Windows assets.
+- Use original or open-source icons; do not copy Apple or AWS logos.
 
 ## Conventions
 
