@@ -70,7 +70,7 @@ export default async function Home() {
           <div className="space-y-5 border-b border-border p-5 md:border-r md:border-b-0">
             <div>
               <p className="console-kicker">01 / Compute</p>
-              <h3 className="font-display text-3xl">EC2</h3>
+              <h3 className="text-lg font-bold">EC2</h3>
               <p className="text-sm text-muted">
                 Virtual machines and network access.
               </p>
@@ -96,7 +96,7 @@ export default async function Home() {
           <div className="space-y-5 p-5">
             <div>
               <p className="console-kicker">02 / Containers</p>
-              <h3 className="font-display text-3xl">ECS</h3>
+              <h3 className="text-lg font-bold">ECS</h3>
               <p className="text-sm text-muted">
                 Clusters, workloads, and compute capacity.
               </p>
@@ -122,7 +122,7 @@ export default async function Home() {
         </div>
         <div className="space-y-3 border-t border-border p-5">
           <p className="console-kicker">03 / CloudWatch Logs</p>
-          <h3 className="font-display text-3xl">Logs Monitor</h3>
+          <h3 className="text-lg font-bold">Logs Monitor</h3>
           <p className="text-sm text-muted">
             Read recent log events and follow new output in a live console.
           </p>
@@ -138,7 +138,7 @@ export default async function Home() {
         </div>
         <div className="space-y-3 border-t border-border p-5">
           <p className="console-kicker">04 / Object storage</p>
-          <h3 className="font-display text-3xl">S3</h3>
+          <h3 className="text-lg font-bold">S3</h3>
           <p className="text-sm text-muted">
             Browse buckets across all regions, inspect objects, and manage their
             storage class.

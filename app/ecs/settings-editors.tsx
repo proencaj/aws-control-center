@@ -12,7 +12,7 @@ import {
 export function LookupHelp({ region, kind }: { region: string; kind: string }) {
   const [selected, setSelected] = useState("");
   return (
-    <details className="space-y-3 rounded-md border border-border p-3 text-sm">
+    <details className="group-box space-y-3 p-3 text-sm">
       <summary className="cursor-pointer">
         Browse existing {kind.replaceAll("-", " ")}
       </summary>

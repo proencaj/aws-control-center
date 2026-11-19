@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { ErrorNotice } from "@/components/error-notice";
-export const inputClass =
-  "w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground";
-export const buttonClass =
-  "inline-flex rounded-md border border-border px-3 py-2 text-sm hover:bg-surface";
+export const inputClass = "w-full";
+export const buttonClass = "btn";
 export function Heading({
   title,
   children,
@@ -12,7 +10,7 @@ export function Heading({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 border-b-4 border-double border-border pb-4">
+    <div className="flex flex-wrap items-center justify-between gap-4">
       <h2 className="console-heading">{title}</h2>
       <div className="flex flex-wrap gap-2">{children}</div>
     </div>
@@ -71,8 +69,8 @@ export function JsonDetails({
   label?: string;
 }) {
   return (
-    <details className="rounded-md border border-border p-4 text-sm">
-      <summary className="cursor-pointer font-medium uppercase">
+    <details className="group-box p-4 text-sm">
+      <summary className="font-bold">
         {label} / JSON
       </summary>
       <pre className="mt-4 overflow-auto whitespace-pre-wrap break-all text-xs">
@@ -93,7 +91,7 @@ export function Table({
   return (
     <div className="console-window overflow-x-auto">
       <table className="w-full text-left text-sm">
-        <caption className="border-b border-border bg-surface px-4 py-2 text-left text-xs uppercase tracking-wider">
+        <caption className="border-b border-border bg-surface px-4 py-1 text-left text-xs font-bold">
           Result set / {rows.length} {rows.length === 1 ? "record" : "records"}{" "}
           on this page
         </caption>
@@ -123,7 +121,7 @@ export function Table({
                 className="p-8 text-center text-muted"
                 colSpan={headers.length}
               >
-                <p className="mb-2 text-xs uppercase tracking-wider">
+                <p className="mb-2 text-xs font-bold">
                   Empty result set
                 </p>
                 <p>{empty}</p>

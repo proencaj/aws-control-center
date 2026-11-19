@@ -72,7 +72,7 @@ export default async function InstancePage({
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/ec2/instances/${id}`}
-            className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-surface"
+            className="btn"
           >
             Refresh
           </Link>
@@ -151,7 +151,7 @@ function StateButton({
 }) {
   return (
     <ActionForm action={action}>
-      <button className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-surface">
+      <button>
         {label}
       </button>
     </ActionForm>

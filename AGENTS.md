@@ -25,7 +25,7 @@ A local web interface, built with Next.js, that works like a lightweight AWS Man
 | AWS access | AWS SDK for JavaScript v3, one modular client per service (`@aws-sdk/client-s3`, `@aws-sdk/client-ec2`, ...) |
 | Styling | Tailwind CSS |
 | UI components | shadcn/ui (copied into the repo, only what is used) |
-| Icons | `lucide-react`, grayscale, 16px in navigation |
+| Icons | `lucide-react`, 16px in navigation |
 | Forms / validation | Native forms + Server Actions, `zod` for input validation |
 | Tests | Vitest, `aws-sdk-client-mock` for SDK calls |
 | Lint / format | ESLint (Next.js config), Prettier |
@@ -113,11 +113,11 @@ Later candidates: CloudWatch Logs, SQS, SNS, Secrets Manager.
 
 ## Style
 
-- **Minimalist.** Plain layouts, generous whitespace, thin borders, no shadows, gradients or decorative elements.
-- **Grayscale only.** Colors range from white to black. No accent, brand or status colors (no red, green, amber, blue). Convey state with text, weight, borders and icons instead.
-- **Light and dark mode.** Both are required on every screen. Follow the system preference (`prefers-color-scheme`). Use Tailwind `dark:` variants and define colors once as CSS variables in `app/globals.css`, so no component hardcodes a color.
-- **Destructive actions** are marked by wording and the confirm dialog, not by color.
-- Use Tailwind's `neutral` or `zinc` scale only. Never `slate`, `red`, `green` or any other hue.
+- **Windows 95 theme.** Silver panels, teal desktop, navy title bars and selections, raised/sunken two-layer bevels, square corners, sans-serif UI text (`"MS Sans Serif", Tahoma, Arial`). Monospace only for logs, JSON, code and identifiers. No gradients, soft shadows or animations. Hard-edged inset `box-shadow` is allowed for bevels.
+- **Light and dark mode.** Both are required on every screen. Light is the classic palette. Dark is a coordinated adaptation (deep teal desktop, charcoal panels, blue title bars). Follow the system preference (`prefers-color-scheme`). Define colors once as CSS variables in `app/globals.css` and use the semantic names (`bg-surface`, `bg-field`, `bg-selection`). No component hardcodes a color.
+- **Shared classes.** `console-window`, `console-title`, `group-box`, `raised`, `sunken`, `btn` (link styled as a button), `sheet-tab`. Plain `button`, `input`, `select` and `textarea` are styled globally, so do not add border or background utilities to them.
+- **Status** is conveyed with text, weight and icons, not hue. Destructive actions are marked by wording and the confirm dialog.
+- Do not bundle Microsoft fonts, logos or extracted Windows assets.
 
 ## Conventions
 

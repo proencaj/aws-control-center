@@ -608,7 +608,7 @@ async function ServiceView({
         <Refresh href={`${base}${tab ? `/${tab}` : ""}`} />
       </Heading>
       {!editable && (
-        <p className="rounded-md border border-border p-4 text-sm">
+        <p className="group-box p-4 text-sm">
           This deployment mode is read-only. Only ECS rolling services can be
           modified here.
         </p>

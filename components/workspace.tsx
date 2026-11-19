@@ -300,24 +300,34 @@ export function WorkspaceShell({
 
   return (
     <WorkspaceContext.Provider value={context}>
-      <div className="flex min-h-screen flex-col bg-background text-foreground antialiased md:flex-row">
-        <Sidebar />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface px-5 py-3 lg:px-8">
-            <span className="console-kicker">AWS / Resource console</span>
-            <RegionSelect regions={regions} current={active.region} onChange={changeRegion} />
-          </header>
-          <div role="tablist" aria-label="Open workspaces" onKeyDown={tabKeyDown} className="flex max-w-full overflow-x-auto border-b border-border bg-background md:sticky md:top-0 md:z-10">
+      <div className="min-h-screen p-1 md:p-2">
+        <div className="console-window flex min-h-[calc(100vh-1rem)] flex-col md:min-h-[calc(100vh-1rem)]">
+          <div className="console-title">
+            <span>AWS Control Center</span>
+            <span aria-hidden className="flex gap-1">
+              <span className="raised block h-3.5 w-4" />
+              <span className="raised block h-3.5 w-4" />
+              <span className="raised block h-3.5 w-4" />
+            </span>
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col md:flex-row">
+            <Sidebar />
+            <div className="flex min-w-0 flex-1 flex-col">
+              <header className="flex flex-wrap items-center justify-between gap-3 px-2 py-1.5">
+                <span className="console-kicker">AWS / Resource console</span>
+                <RegionSelect regions={regions} current={active.region} onChange={changeRegion} />
+              </header>
+          <div role="tablist" aria-label="Open workspaces" onKeyDown={tabKeyDown} className="flex max-w-full gap-0.5 overflow-x-auto px-1 pt-1 md:sticky md:top-0 md:z-10">
             {tabs.map((tab) => (
-              <div key={tab.id} className="flex shrink-0 border-r border-border" role="presentation">
-                <button role="tab" data-workspace={tab.id} tabIndex={tab.id === activeId ? 0 : -1} aria-selected={tab.id === activeId} onClick={() => void activate(tab)} className="max-w-56 truncate px-4 py-2 text-xs text-muted hover:bg-surface aria-selected:bg-foreground aria-selected:text-background">
+              <div key={tab.id} className="sheet-tab flex shrink-0 items-center" role="presentation" data-selected={tab.id === activeId}>
+                <button role="tab" data-workspace={tab.id} tabIndex={tab.id === activeId ? 0 : -1} aria-selected={tab.id === activeId} onClick={() => void activate(tab)} className="plain max-w-56 truncate bg-transparent px-1 text-[13px] shadow-none">
                   {tab.title}
                 </button>
-                <button aria-label={`Close ${tab.title}`} onClick={() => void close(tab.id)} className="px-2 text-muted hover:bg-surface hover:text-foreground"><X size={14} /></button>
+                <button aria-label={`Close ${tab.title}`} onClick={() => void close(tab.id)} className="plain bg-transparent px-1 shadow-none"><X size={12} /></button>
               </div>
             ))}
           </div>
-          <main className="flex-1 px-5 py-8 lg:px-8">
+          <main className="raised relative z-0 mx-1 min-w-0 flex-1 px-4 py-5 lg:px-6">
             {tabs.map((tab) => {
               const routeOwnsTab = routeTabId === tab.id;
               const content = routeOwnsTab && (tab.href !== routeHref || !cached[tab.id]) ? children : cached[tab.id];
@@ -330,7 +340,9 @@ export function WorkspaceShell({
               );
             })}
           </main>
-          <footer className="flex flex-wrap justify-between gap-2 border-t border-border px-5 py-2 text-xs text-muted lg:px-8"><span>LOCAL CONSOLE</span><span>EC2 / ECS / LOGS / S3</span></footer>
+              <footer className="flex gap-1 p-1 text-xs"><span className="status-field flex-1">Local console</span><span className="status-field hidden sm:block">EC2 / ECS / Logs / S3</span></footer>
+            </div>
+          </div>
         </div>
       </div>
     </WorkspaceContext.Provider>

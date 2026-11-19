@@ -14,13 +14,13 @@ export default async function InstancesPage({
 
   return (
     <section className="space-y-4">
-      <div className="space-y-2 border-b-4 border-double border-border pb-4">
+      <div className="space-y-2">
         <h2 className="console-heading">Instance directory</h2>
         <p className="text-sm text-muted">
           Open an instance to inspect its configuration or change its state.
         </p>
       </div>
-      <div className="flex flex-wrap items-end justify-between gap-4 border border-border bg-surface p-4">
+      <div className="group-box flex flex-wrap items-end justify-between gap-4 p-3">
         <form className="flex flex-wrap items-end gap-2 text-sm">
           <label className="space-y-1">
             <span className="console-kicker block">Name filter</span>
@@ -29,10 +29,9 @@ export default async function InstancesPage({
               name="q"
               defaultValue={nameFilter}
               placeholder="Instance name"
-              className="rounded-md border border-border bg-transparent px-2 py-1.5 outline-none focus:border-foreground"
             />
           </label>
-          <button className="rounded-md border border-border px-3 py-1.5 hover:bg-background">
+          <button>
             Apply filter
           </button>
           {nameFilter && (
@@ -43,7 +42,7 @@ export default async function InstancesPage({
         </form>
         <Link
           href="/ec2/instances/new"
-          className="rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background"
+          className="btn font-bold"
         >
           Launch instance
         </Link>
@@ -55,7 +54,7 @@ export default async function InstancesPage({
         <>
           <div className="console-window overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <caption className="border-b border-border bg-surface px-4 py-2 text-left text-xs uppercase tracking-wider">
+              <caption className="border-b border-border bg-surface px-4 py-1 text-left text-xs font-bold">
                 Result set / {result.data.instances.length}{" "}
                 {result.data.instances.length === 1 ? "instance" : "instances"}{" "}
                 on this page
@@ -118,7 +117,7 @@ export default async function InstancesPage({
                       colSpan={8}
                       className="px-4 py-6 text-center text-muted"
                     >
-                      <p className="mb-2 text-xs uppercase tracking-wider">
+                      <p className="mb-2 text-xs font-bold">
                         Empty result set
                       </p>
                       <p>

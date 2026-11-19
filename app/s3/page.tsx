@@ -23,7 +23,7 @@ export default async function BucketsPage({
         </div>
         <Link
           href={`/s3?${new URLSearchParams({ ...(prefix ? { prefix } : {}), ...(next ? { next } : {}) })}`}
-          className="border border-border px-3 py-2 text-xs hover:bg-surface"
+          className="btn"
         >
           Refresh
         </Link>
@@ -35,7 +35,7 @@ export default async function BucketsPage({
         <>
           <div className="console-window overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <caption className="border-b border-border bg-surface px-4 py-2 text-left text-xs uppercase">
+              <caption className="border-b border-border bg-surface px-4 py-1 text-left text-xs font-bold">
                 {result.data.buckets.length} buckets on this page / General
                 purpose
               </caption>

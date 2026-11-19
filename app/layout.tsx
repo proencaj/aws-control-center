@@ -5,13 +5,6 @@ import { getRegion } from "@/lib/aws/clients";
 import { listRegions } from "@/lib/ec2";
 import "./globals.css";
 
-const terminal = localFont({
-  src: "./fonts/VT323-Regular.ttf",
-  variable: "--font-terminal",
-  weight: "400",
-  display: "swap",
-});
-
 const berkeley = localFont({
   src: [
     {
@@ -54,7 +47,7 @@ export default async function RootLayout({
   const [current, regions] = await Promise.all([getRegion(), loadRegions()]);
 
   return (
-    <html lang="en" className={`${terminal.variable} ${berkeley.variable}`}>
+    <html lang="en" className={berkeley.variable}>
       <body>
         <WorkspaceShell initialRegion={current} regions={regions}>{children}</WorkspaceShell>
       </body>

@@ -5,10 +5,8 @@ import type { LogGroupPage, LogPage } from "@/lib/cloudwatch-logs";
 import { useWorkspaceActive } from "@/components/workspace";
 import { formatLog, mergeLogs, type LogEvent } from "./log-buffer";
 
-const inputClass =
-  "w-full border border-border bg-background px-3 py-2 text-sm";
-const buttonClass =
-  "border border-border px-3 py-2 text-xs hover:bg-surface disabled:opacity-40";
+const inputClass = "w-full";
+const buttonClass = "";
 type Session = {
   controller: AbortController;
   group: string;
@@ -422,7 +420,7 @@ export function LogsViewer({
                 Tail
               </label>
               <button
-                className="border border-foreground bg-foreground px-5 py-2 text-sm text-background disabled:opacity-40"
+                className="font-bold"
                 disabled={!group || busy || tailing}
               >
                 Monitor

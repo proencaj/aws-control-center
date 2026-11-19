@@ -5,7 +5,7 @@ export function RegionSelect({ regions, current, onChange }: { regions: string[]
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      <label htmlFor="region" className="text-muted">
+      <label htmlFor="region">
         Region
       </label>
       <select
@@ -13,7 +13,6 @@ export function RegionSelect({ regions, current, onChange }: { regions: string[]
         name="region"
         defaultValue={current}
         onChange={(event) => onChange(event.target.value)}
-        className="rounded-md border border-border bg-background px-2 py-1 outline-none focus:border-foreground"
       >
         {options.map((region) => (
           <option key={region} value={region}>

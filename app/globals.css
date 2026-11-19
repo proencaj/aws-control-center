@@ -1,66 +1,187 @@
 @import "tailwindcss";
 
+/* Windows 95 theme. Every color lives here; components use the semantic names. */
 :root {
   color-scheme: light;
-  --background: #f5f5f5;
-  --foreground: #1a1a1a;
-  --muted: #626262;
-  --border: #777777;
-  --surface: #e5e5e5;
-  --log-normal: #626262;
-  --log-warning: #414141;
-  --log-error: #1a1a1a;
+  --desktop: #008080;
+  --background: #c0c0c0;
+  --surface: #c0c0c0;
+  --field: #ffffff;
+  --foreground: #000000;
+  --muted: #404040;
+  --disabled: #808080;
+  --border: #808080;
+  --title: #000080;
+  --title-foreground: #ffffff;
+  --selection: #000080;
+  --selection-foreground: #ffffff;
+  --bevel-light: #ffffff;
+  --bevel-soft: #dfdfdf;
+  --bevel-shadow: #808080;
+  --bevel-dark: #0a0a0a;
+  --log-normal: #404040;
+  --log-warning: #000000;
+  --log-error: #000000;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --background: #111111;
-    --foreground: #eeeeee;
-    --muted: #aaaaaa;
-    --border: #606060;
-    --surface: #1c1c1c;
-    --log-normal: #aaaaaa;
-    --log-warning: #cccccc;
-    --log-error: #eeeeee;
+    --desktop: #102828;
+    --background: #303030;
+    --surface: #303030;
+    --field: #181818;
+    --foreground: #f0f0f0;
+    --muted: #b8b8b8;
+    --disabled: #7a7a7a;
+    --border: #6a6a6a;
+    --title: #183858;
+    --title-foreground: #ffffff;
+    --selection: #2a5a98;
+    --selection-foreground: #ffffff;
+    --bevel-light: #7a7a7a;
+    --bevel-soft: #484848;
+    --bevel-shadow: #141414;
+    --bevel-dark: #000000;
+    --log-normal: #b8b8b8;
+    --log-warning: #f0f0f0;
+    --log-error: #f0f0f0;
   }
 }
 
 @theme inline {
+  --color-desktop: var(--desktop);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-border: var(--border);
   --color-surface: var(--surface);
+  --color-field: var(--field);
+  --color-disabled: var(--disabled);
+  --color-title: var(--title);
+  --color-title-foreground: var(--title-foreground);
+  --color-selection: var(--selection);
+  --color-selection-foreground: var(--selection-foreground);
+  --font-sans: "MS Sans Serif", Tahoma, Arial, sans-serif;
   --font-mono:
     var(--font-berkeley), Monaco, "SFMono-Regular", Consolas, "Liberation Mono",
     Menlo, monospace;
-  --font-display: var(--font-terminal), monospace;
-  /* Shared by the existing panels, dialogs, and form controls. */
   --radius-md: 0;
 }
 
 @layer base {
   body {
-    background: var(--background);
+    background: var(--desktop);
     color: var(--foreground);
-    font-family: var(--font-mono);
-    font-size: 0.875rem;
-    line-height: 1.6;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.4;
   }
 
-  h1 {
-    text-transform: uppercase;
+  h1,
+  h2,
+  h3 {
+    font-weight: 700;
   }
 
   :where(a, button, input, select, textarea, summary):focus-visible {
-    outline: 2px solid var(--foreground);
-    outline-offset: 3px;
+    outline: 1px dotted var(--foreground);
+    outline-offset: -4px;
+  }
+
+  :where(input, select, textarea):focus-visible {
+    outline-offset: 2px;
   }
 
   :where(a) {
-    text-underline-offset: 0.2em;
-    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+  }
+
+  /* Raised controls with a pressed state. */
+  button,
+  summary.btn {
+    background: var(--surface);
+    color: var(--foreground);
+    box-shadow:
+      inset -1px -1px var(--bevel-dark),
+      inset 1px 1px var(--bevel-light),
+      inset -2px -2px var(--bevel-shadow),
+      inset 2px 2px var(--bevel-soft);
+    font-size: 13px;
+    cursor: default;
+  }
+
+  button:not([role="tab"], [aria-current], .plain):not(.btn-icon) {
+    min-height: 23px;
+    padding: 3px 12px;
+  }
+
+  button:not(.plain):active:not(:disabled) {
+    box-shadow:
+      inset -1px -1px var(--bevel-light),
+      inset 1px 1px var(--bevel-dark),
+      inset -2px -2px var(--bevel-soft),
+      inset 2px 2px var(--bevel-shadow);
+    padding: 4px 11px 2px 13px;
+  }
+
+  button:disabled {
+    color: var(--disabled);
+    text-shadow: 1px 1px var(--bevel-light);
+  }
+
+  /* Sunken fields. */
+  :where(input:not([type="checkbox"], [type="radio"], [type="file"]), select, textarea) {
+    background: var(--field);
+    color: var(--foreground);
+    font-size: 13px;
+    padding: 3px 4px;
+    box-shadow:
+      inset -1px -1px var(--bevel-light),
+      inset 1px 1px var(--bevel-shadow),
+      inset -2px -2px var(--bevel-soft),
+      inset 2px 2px var(--bevel-dark);
+  }
+
+  :where(input, select, textarea):disabled {
+    color: var(--disabled);
+    background: var(--surface);
+  }
+
+  :where(input, textarea)::placeholder {
+    color: var(--disabled);
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--selection);
+  }
+
+  input[type="file"]::file-selector-button {
+    margin-right: 0.5rem;
+    padding: 2px 10px;
+    background: var(--surface);
+    color: var(--foreground);
+    border: 0;
+    box-shadow:
+      inset -1px -1px var(--bevel-dark),
+      inset 1px 1px var(--bevel-light),
+      inset -2px -2px var(--bevel-shadow),
+      inset 2px 2px var(--bevel-soft);
+  }
+
+  dialog {
+    background: var(--surface);
+    color: var(--foreground);
+  }
+
+  dialog::backdrop {
+    background: color-mix(in srgb, var(--bevel-dark) 40%, transparent);
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
   }
 }
 
@@ -72,17 +193,25 @@
 
   .log-message[data-severity="warning"] {
     color: var(--log-warning);
-    font-weight: 500;
+    font-weight: 600;
   }
 
   .log-message[data-severity="error"] {
     color: var(--log-error);
     font-weight: 700;
+    text-decoration: underline;
   }
 
+  /* Raised window frame: the app window, dialogs, major sections. */
   .console-window {
-    border: 3px double var(--border);
     min-width: 0;
+    background: var(--surface);
+    padding: 3px;
+    box-shadow:
+      inset -1px -1px var(--bevel-dark),
+      inset 1px 1px var(--bevel-soft),
+      inset -2px -2px var(--bevel-shadow),
+      inset 2px 2px var(--bevel-light);
   }
 
   .console-title {
@@ -91,52 +220,128 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    background: var(--foreground);
-    color: var(--background);
-    padding: 0.5rem 1rem;
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    background: var(--title);
+    color: var(--title-foreground);
+    padding: 2px 4px;
+    font-size: 13px;
+    font-weight: 700;
   }
 
   .console-kicker {
-    font-size: 0.6875rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    font-size: 12px;
     color: var(--muted);
   }
 
   .console-heading {
-    font-family: var(--font-display);
-    font-size: 2.5rem;
-    font-weight: 400;
-    line-height: 1.1;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
     overflow-wrap: anywhere;
+  }
+
+  /* Etched group box for forms and detail sections. */
+  .group-box {
+    border: 1px solid var(--bevel-shadow);
+    box-shadow: 1px 1px var(--bevel-light);
+  }
+
+  /* A link that looks like a button. */
+  .btn {
+    display: inline-block;
+    padding: 3px 12px;
+    font-size: 13px;
+    text-decoration: none;
+    background: var(--surface);
+    color: var(--foreground);
+    box-shadow:
+      inset -1px -1px var(--bevel-dark),
+      inset 1px 1px var(--bevel-light),
+      inset -2px -2px var(--bevel-shadow),
+      inset 2px 2px var(--bevel-soft);
+  }
+
+  .btn:active {
+    box-shadow:
+      inset -1px -1px var(--bevel-light),
+      inset 1px 1px var(--bevel-dark),
+      inset -2px -2px var(--bevel-soft),
+      inset 2px 2px var(--bevel-shadow);
+  }
+
+  .sunken {
+    background: var(--field);
+    box-shadow:
+      inset -1px -1px var(--bevel-light),
+      inset 1px 1px var(--bevel-shadow),
+      inset -2px -2px var(--bevel-soft),
+      inset 2px 2px var(--bevel-dark);
+  }
+
+  .raised {
+    background: var(--surface);
+    box-shadow:
+      inset -1px -1px var(--bevel-dark),
+      inset 1px 1px var(--bevel-light),
+      inset -2px -2px var(--bevel-shadow),
+      inset 2px 2px var(--bevel-soft);
+  }
+
+  .status-field {
+    box-shadow:
+      inset 1px 1px var(--bevel-shadow),
+      inset -1px -1px var(--bevel-light);
+    padding: 2px 6px;
+  }
+
+  /* Property-sheet tabs, shared by workspace tabs and service navigation. */
+  .sheet-tab {
+    position: relative;
+    background: var(--surface);
+    color: var(--foreground);
+    padding: 3px 10px;
+    margin-top: 2px;
+    box-shadow:
+      inset -1px 0 var(--bevel-dark),
+      inset 1px 1px var(--bevel-light),
+      inset -2px 0 var(--bevel-shadow),
+      inset 2px 2px var(--bevel-soft);
+  }
+
+  .sheet-tab:hover {
+    background: var(--bevel-soft);
+  }
+
+  .sheet-tab[data-selected="true"],
+  .sheet-tab[aria-current="page"] {
+    z-index: 1;
+    margin-top: 0;
+    margin-bottom: -2px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-weight: 700;
+    background: var(--surface);
   }
 
   .console-tabs {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border-top: 1px solid var(--border);
-    background: var(--surface);
+    gap: 0 2px;
+    padding: 4px 4px 0;
+    border-bottom: 2px solid var(--bevel-light);
+    box-shadow: 0 1px var(--bevel-shadow);
   }
 
   .console-tabs a {
-    padding: 0.25rem 0.5rem;
-    border: 1px solid var(--border);
-  }
-
-  .console-tabs a:hover,
-  .console-tabs a[aria-current="page"] {
-    background: var(--foreground);
-    color: var(--background);
+    text-decoration: none;
   }
 
   main nav {
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    font-size: 13px;
+  }
+
+  /* Explorer detail list. */
+  table {
+    background: var(--field);
   }
 
   thead {
@@ -144,31 +349,29 @@
   }
 
   th {
-    font-size: 0.75rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  main th + th,
-  main td + td {
-    border-left: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 400;
+    background: var(--surface);
+    box-shadow:
+      inset -1px -1px var(--bevel-shadow),
+      inset 1px 1px var(--bevel-light);
   }
 
   main tbody tr:hover {
-    background: var(--surface);
+    background: var(--selection);
+    color: var(--selection-foreground);
+  }
+
+  main tbody tr:hover :where(a, .text-muted) {
+    color: inherit;
   }
 
   main dt {
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 12px;
   }
 
-  main :where(button, a.border) {
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-  }
-
-  :where(input, select, textarea) {
-    accent-color: var(--foreground);
+  summary {
+    cursor: default;
   }
 }
