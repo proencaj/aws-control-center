@@ -127,24 +127,41 @@ export async function listServices(
   region: string,
   cluster: string,
   nextToken?: string,
+  filter = "",
 ) {
   const client = ecsClient(region);
-  const page = await client.send(
-    new ECS.ListServicesCommand({ cluster, maxResults: 50, nextToken }),
-  );
+  const needle = filter.trim().toLowerCase();
+  // ListServices cannot filter by name, so keep reading pages until 50 names match.
+  const arns: string[] = [];
+  let token = nextToken;
+  do {
+    const page = await client.send(
+      new ECS.ListServicesCommand({
+        cluster,
+        maxResults: 100,
+        nextToken: token,
+      }),
+    );
+    arns.push(
+      ...(page.serviceArns ?? []).filter((arn) =>
+        arn.split("/").pop()!.toLowerCase().includes(needle),
+      ),
+    );
+    token = page.nextToken;
+  } while (token && arns.length < 50);
   const resources: ECS.Service[] = [],
     failures: ECS.Failure[] = [];
-  for (let i = 0; i < (page.serviceArns?.length ?? 0); i += 10) {
+  for (let i = 0; i < arns.length; i += 10) {
     const result = await client.send(
       new ECS.DescribeServicesCommand({
         cluster,
-        services: page.serviceArns!.slice(i, i + 10),
+        services: arns.slice(i, i + 10),
       }),
     );
     resources.push(...(result.services ?? []));
     failures.push(...(result.failures ?? []));
   }
-  return { resources, failures, nextToken: page.nextToken };
+  return { resources, failures, nextToken: token };
 }
 export async function getService(
   region: string,

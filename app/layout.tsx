@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { WorkspaceShell } from "@/components/workspace";
+import { getAccount, listAccounts } from "@/lib/aws/accounts";
+import { getCallerIdentity, identityName } from "@/lib/sts";
 import { getRegion } from "@/lib/aws/clients";
 import { listRegions } from "@/lib/ec2";
 import "./globals.css";
@@ -39,17 +41,25 @@ async function loadRegions() {
   }
 }
 
+async function loadIdentityName() {
+  try {
+    return identityName((await getCallerIdentity()).arn ?? "");
+  } catch {
+    return undefined;
+  }
+}
+
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [current, regions] = await Promise.all([getRegion(), loadRegions()]);
+  const [current, regions, account, identity] = await Promise.all([getRegion(), loadRegions(), getAccount(), loadIdentityName()]);
 
   return (
     <html lang="en" className={berkeley.variable}>
       <body>
-        <WorkspaceShell initialRegion={current} regions={regions}>{children}</WorkspaceShell>
+        <WorkspaceShell initialRegion={current} regions={regions} accounts={listAccounts()} currentAccountId={account?.id} identity={identity}>{children}</WorkspaceShell>
       </body>
     </html>
   );

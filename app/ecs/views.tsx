@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { ActionForm } from "@/components/action-form";
+import { ConfirmAction } from "@/components/confirm-action";
 import { ConfirmDelete } from "@/components/confirm-delete";
+import { FilterSearch } from "@/components/filter-search";
 import { ErrorNotice } from "@/components/error-notice";
 import { attempt } from "@/lib/aws/errors";
 import * as ecs from "@/lib/ecs";
@@ -24,6 +26,7 @@ import {
   shortId,
 } from "./ui";
 import { ScalingView } from "./scaling-view";
+import { ServiceActions } from "./service-actions";
 import {
   ProviderEditor,
   ClusterCapacityEditor,
@@ -112,7 +115,12 @@ export async function ClusterList({
             {c.clusterName}
           </ResourceLink>,
           c.status,
-          c.activeServicesCount,
+          <ResourceLink
+            key="services"
+            href={`${clusterBase(c.clusterName!)}/services`}
+          >
+            {c.activeServicesCount ?? 0}
+          </ResourceLink>,
           `${c.runningTasksCount ?? 0} / ${c.pendingTasksCount ?? 0}`,
           c.registeredContainerInstancesCount,
           c.capacityProviders?.join(", "),
@@ -309,8 +317,9 @@ async function ServiceList({
   query: Query;
 }) {
   const next = queryValue(query, "next"),
+    filter = queryValue(query, "filter") ?? "",
     base = `${clusterBase(cluster)}/services`;
-  const result = await ecs.listServices(region, cluster, next);
+  const result = await ecs.listServices(region, cluster, next, filter);
   return (
     <section className="space-y-5">
       <Heading title="Services">
@@ -319,6 +328,12 @@ async function ServiceList({
           Create service
         </Link>
       </Heading>
+      <FilterSearch
+        param="filter"
+        value={filter}
+        label="Service name filter"
+        placeholder="Filter services by name"
+      />
       <Failures failures={result.failures} />
       <Table
         headers={[
@@ -328,6 +343,7 @@ async function ServiceList({
           "Desired / running / pending",
           "Task definition",
           "Compute",
+          "Actions",
         ]}
         rows={result.resources.map((s) => [
           <ResourceLink
@@ -349,9 +365,37 @@ async function ServiceList({
             s.capacityProviderStrategy
               ?.map((c) => c.capacityProvider)
               .join(", "),
+          s.status === "ACTIVE" ? (
+            <ServiceActions
+              key="actions"
+              serviceName={s.serviceName!}
+              desiredCount={s.desiredCount ?? 0}
+              daemon={s.schedulingStrategy === "DAEMON"}
+              setDesiredCount={action(region, {
+                operation: "updateService",
+                cluster,
+                name: s.serviceName!,
+              })}
+              redeploy={action(region, {
+                operation: "redeploy",
+                cluster,
+                name: s.serviceName!,
+              })}
+              stopAll={action(region, {
+                operation: "scaleZero",
+                cluster,
+                name: s.serviceName!,
+              })}
+            />
+          ) : null,
         ])}
       />
-      <Pagination base={base} current={next} nextToken={result.nextToken} />
+      <Pagination
+        base={base}
+        current={next}
+        nextToken={result.nextToken}
+        query={filter ? { filter } : {}}
+      />
     </section>
   );
 }
@@ -572,12 +616,14 @@ async function ServiceView({
                   <Submit>Force new deployment</Submit>
                 </ActionForm>
                 {s.schedulingStrategy !== "DAEMON" && (
-                  <Destructive
-                    region={region}
-                    target={{ operation: "scaleZero", cluster, name }}
-                    resourceName={name}
+                  <ConfirmAction
+                    action={action(region, {
+                      operation: "scaleZero",
+                      cluster,
+                      name,
+                    })}
                     label="Scale to zero"
-                    impact="Stops every task managed by this service. Suspend all autoscaling first to prevent tasks from restarting."
+                    impact="Stops every task managed by this service by setting its desired count to zero."
                   />
                 )}
               </div>

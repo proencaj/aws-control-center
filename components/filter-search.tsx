@@ -1,13 +1,24 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
-export function BucketSearch({ prefix }: { prefix: string }) {
+export function FilterSearch({
+  param,
+  value,
+  label,
+  placeholder,
+}: {
+  param: string;
+  value: string;
+  label: string;
+  placeholder: string;
+}) {
   const router = useRouter();
+  const pathname = usePathname();
   const input = useRef<HTMLInputElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const latest = useRef(prefix);
+  const latest = useRef(value);
   const [pending, startTransition] = useTransition();
   const [typing, setTyping] = useState(false);
 
@@ -15,23 +26,24 @@ export function BucketSearch({ prefix }: { prefix: string }) {
   useEffect(() => {
     // Don't overwrite newer typing when an earlier navigation finishes.
     if (!timer.current && !pending && input.current) {
-      input.current.value = prefix;
-      latest.current = prefix;
+      input.current.value = value;
+      latest.current = value;
     }
-  }, [prefix, pending]);
+  }, [value, pending]);
 
-  function navigate(value: string) {
+  function navigate(next: string) {
     clearTimeout(timer.current);
     timer.current = undefined;
     setTyping(false);
     startTransition(() => {
       const params = new URLSearchParams(window.location.search);
-      if (value) params.set("prefix", value);
-      else params.delete("prefix");
-      router.replace(
-        `/s3${params.size ? `?${params}` : ""}`,
-        { scroll: false },
-      );
+      if (next) params.set(param, next);
+      else params.delete(param);
+      // A new filter invalidates any pagination token.
+      params.delete("next");
+      router.replace(`${pathname}${params.size ? `?${params}` : ""}`, {
+        scroll: false,
+      });
     });
   }
 
@@ -44,13 +56,13 @@ export function BucketSearch({ prefix }: { prefix: string }) {
       }}
     >
       <label className="min-w-0 flex-1">
-        <span className="sr-only">Bucket name prefix</span>
+        <span className="sr-only">{label}</span>
         <input
           ref={input}
           type="search"
-          name="prefix"
-          defaultValue={prefix}
-          placeholder="Find buckets by name prefix"
+          name={param}
+          defaultValue={value}
+          placeholder={placeholder}
           className="w-full"
           onChange={(event) => {
             latest.current = event.target.value;

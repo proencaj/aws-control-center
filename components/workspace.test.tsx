@@ -37,7 +37,7 @@ beforeEach(() => {
 afterEach(cleanup);
 
 it("restores workspaces and switches the account region before navigation", async () => {
-  render(<WorkspaceShell initialRegion="us-east-1" regions={["us-east-1", "us-west-2"]}><p>Directory content</p></WorkspaceShell>);
+  render(<WorkspaceShell initialRegion="us-east-1" regions={["us-east-1", "us-west-2"]} accounts={[]}><p>Directory content</p></WorkspaceShell>);
 
   const ec2 = await screen.findByRole("tab", { name: "EC2" });
   fireEvent.click(ec2);
@@ -48,7 +48,7 @@ it("restores workspaces and switches the account region before navigation", asyn
 });
 
 it("opens another workspace for the same service and closes it", async () => {
-  render(<WorkspaceShell initialRegion="us-east-1" regions={["us-east-1"]}><p>Directory content</p></WorkspaceShell>);
+  render(<WorkspaceShell initialRegion="us-east-1" regions={["us-east-1"]} accounts={[]}><p>Directory content</p></WorkspaceShell>);
 
   const open = await screen.findByRole("button", { name: "Open another EC2 tab" });
   fireEvent.click(open);

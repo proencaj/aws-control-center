@@ -155,22 +155,6 @@ function confirm(form: FormData, name: string) {
 function payload(form: FormData) {
   return parseJson(form.get("payload"));
 }
-async function checkZeroScaling(
-  region: string,
-  cluster: string,
-  service: string,
-) {
-  const target = await scaling.getScalingTarget(region, cluster, service);
-  if (
-    target &&
-    (!target.SuspendedState?.DynamicScalingInSuspended ||
-      !target.SuspendedState?.DynamicScalingOutSuspended ||
-      !target.SuspendedState?.ScheduledScalingSuspended)
-  )
-    throw new Error(
-      "Suspend all service autoscaling first so it cannot restart tasks after scaling to zero.",
-    );
-}
 async function scalableService(
   region: string,
   cluster: string,
@@ -254,7 +238,6 @@ export async function ecsAction(
       "deleteProvider",
       "drain",
       "deregisterInstance",
-      "scaleZero",
       "removeScalingTarget",
     ];
     if (destructive.includes(operation))
@@ -318,10 +301,6 @@ export async function ecsAction(
       }
       case "updateService": {
         const input = updateSchema.parse(payload(form));
-        if (input.desiredCount === 0) {
-          confirm(form, name);
-          await checkZeroScaling(region, cluster, name);
-        }
         await ecs.updateService(
           region,
           cluster,
@@ -334,7 +313,6 @@ export async function ecsAction(
         await ecs.redeployService(region, cluster, name);
         break;
       case "scaleZero": {
-        await checkZeroScaling(region, cluster, name);
         await ecs.updateService(region, cluster, name, { desiredCount: 0 });
         break;
       }

@@ -1,18 +1,55 @@
 import "server-only";
-import { DescribeAutoScalingGroupsCommand } from "@aws-sdk/client-auto-scaling";
+import {
+  DescribeAutoScalingGroupsCommand,
+  UpdateAutoScalingGroupCommand,
+  type AutoScalingGroup,
+} from "@aws-sdk/client-auto-scaling";
 import { autoScalingClient } from "@/lib/aws/clients";
+const PAGE_SIZE = 20;
+
 export async function listAutoScalingGroups(
   region: string,
   nextToken?: string,
+  filter?: string,
 ) {
-  const r = await autoScalingClient(region).send(
-    new DescribeAutoScalingGroupsCommand({
-      MaxRecords: 20,
-      NextToken: nextToken,
+  const client = autoScalingClient(region);
+  const needle = filter?.toLowerCase();
+  const resources: AutoScalingGroup[] = [];
+  let token = nextToken;
+  do {
+    const r = await client.send(
+      new DescribeAutoScalingGroupsCommand({
+        MaxRecords: 100,
+        NextToken: token,
+      }),
+    );
+    for (const group of r.AutoScalingGroups ?? []) {
+      if (
+        !needle ||
+        group.AutoScalingGroupName?.toLowerCase().includes(needle)
+      )
+        resources.push(group);
+    }
+    token = r.NextToken;
+  } while (token && resources.length < PAGE_SIZE);
+  return { resources, nextToken: token };
+}
+
+export async function updateCapacity(
+  region: string,
+  name: string,
+  capacity: { min: number; desired: number; max: number },
+) {
+  await autoScalingClient(region).send(
+    new UpdateAutoScalingGroupCommand({
+      AutoScalingGroupName: name,
+      MinSize: capacity.min,
+      DesiredCapacity: capacity.desired,
+      MaxSize: capacity.max,
     }),
   );
-  return { resources: r.AutoScalingGroups ?? [], nextToken: r.NextToken };
 }
+
 export async function validateAutoScalingGroup(
   region: string,
   arn: string,

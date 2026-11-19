@@ -8,7 +8,9 @@ import { ApplicationAutoScalingClient } from "@aws-sdk/client-application-auto-s
 import { ECSClient } from "@aws-sdk/client-ecs";
 import "server-only";
 import { EC2Client } from "@aws-sdk/client-ec2";
+import { STSClient } from "@aws-sdk/client-sts";
 import { cookies } from "next/headers";
+import { accountCredentials, hasAccounts } from "@/lib/aws/accounts";
 
 export const REGION_COOKIE = "region";
 
@@ -17,97 +19,42 @@ export async function getRegion() {
   return stored ?? process.env.AWS_REGION ?? "us-east-1";
 }
 
-const ec2Clients = new Map<string, EC2Client>();
+type ClientConfig = {
+  region: string;
+  credentials?: typeof accountCredentials;
+  followRegionRedirects?: boolean;
+};
+
+const clients = new Map<unknown, Map<string, unknown>>();
+
+// One client per service and region. Without accounts.json the SDK default
+// credential chain (AWS_* env vars) is used.
+function clientFor<Client>(
+  Service: new (config: ClientConfig) => Client,
+  region: string,
+  extra: Partial<ClientConfig> = {},
+) {
+  const byRegion = clients.get(Service) ?? new Map<string, unknown>();
+  clients.set(Service, byRegion);
+  let client = byRegion.get(region) as Client | undefined;
+  if (!client) {
+    client = new Service({ region, credentials: hasAccounts() ? accountCredentials : undefined, ...extra });
+    byRegion.set(region, client);
+  }
+  return client;
+}
 
 export async function ec2Client(selectedRegion?: string) {
-  const region = selectedRegion ?? (await getRegion());
-  let client = ec2Clients.get(region);
-  if (!client) {
-    client = new EC2Client({ region });
-    ec2Clients.set(region, client);
-  }
-  return client;
+  return clientFor(EC2Client, selectedRegion ?? (await getRegion()));
 }
 
-const ecsClientCache = new Map<string, ECSClient>();
-export function ecsClient(region: string) {
-  let client = ecsClientCache.get(region);
-  if (!client) {
-    client = new ECSClient({ region });
-    ecsClientCache.set(region, client);
-  }
-  return client;
-}
-
-const applicationAutoScalingClientCache = new Map<
-  string,
-  ApplicationAutoScalingClient
->();
-export function applicationAutoScalingClient(region: string) {
-  let client = applicationAutoScalingClientCache.get(region);
-  if (!client) {
-    client = new ApplicationAutoScalingClient({ region });
-    applicationAutoScalingClientCache.set(region, client);
-  }
-  return client;
-}
-
-const autoScalingClientCache = new Map<string, AutoScalingClient>();
-export function autoScalingClient(region: string) {
-  let client = autoScalingClientCache.get(region);
-  if (!client) {
-    client = new AutoScalingClient({ region });
-    autoScalingClientCache.set(region, client);
-  }
-  return client;
-}
-
-const elbv2ClientCache = new Map<string, ElasticLoadBalancingV2Client>();
-export function elbv2Client(region: string) {
-  let client = elbv2ClientCache.get(region);
-  if (!client) {
-    client = new ElasticLoadBalancingV2Client({ region });
-    elbv2ClientCache.set(region, client);
-  }
-  return client;
-}
-
-const iamClientCache = new Map<string, IAMClient>();
-export function iamClient(region: string) {
-  let client = iamClientCache.get(region);
-  if (!client) {
-    client = new IAMClient({ region });
-    iamClientCache.set(region, client);
-  }
-  return client;
-}
-
-const cloudWatchClientCache = new Map<string, CloudWatchClient>();
-export function cloudWatchClient(region: string) {
-  let client = cloudWatchClientCache.get(region);
-  if (!client) {
-    client = new CloudWatchClient({ region });
-    cloudWatchClientCache.set(region, client);
-  }
-  return client;
-}
-
-const logsClients = new Map<string, CloudWatchLogsClient>();
-export function cloudWatchLogsClient(region: string) {
-  let client = logsClients.get(region);
-  if (!client) {
-    client = new CloudWatchLogsClient({ region });
-    logsClients.set(region, client);
-  }
-  return client;
-}
-
-const s3Clients = new Map<string, S3Client>();
-export function s3Client(region = process.env.AWS_REGION ?? "us-east-1") {
-  let client = s3Clients.get(region);
-  if (!client) {
-    client = new S3Client({ region, followRegionRedirects: true });
-    s3Clients.set(region, client);
-  }
-  return client;
-}
+export const ecsClient = (region: string) => clientFor(ECSClient, region);
+export const applicationAutoScalingClient = (region: string) => clientFor(ApplicationAutoScalingClient, region);
+export const autoScalingClient = (region: string) => clientFor(AutoScalingClient, region);
+export const elbv2Client = (region: string) => clientFor(ElasticLoadBalancingV2Client, region);
+export const iamClient = (region: string) => clientFor(IAMClient, region);
+export const cloudWatchClient = (region: string) => clientFor(CloudWatchClient, region);
+export const cloudWatchLogsClient = (region: string) => clientFor(CloudWatchLogsClient, region);
+export const stsClient = (region: string) => clientFor(STSClient, region);
+export const s3Client = (region = process.env.AWS_REGION ?? "us-east-1") =>
+  clientFor(S3Client, region, { followRegionRedirects: true });

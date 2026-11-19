@@ -3,7 +3,7 @@ import { listBuckets } from "@/lib/s3";
 import { attempt } from "@/lib/aws/errors";
 import { ErrorNotice } from "@/components/error-notice";
 import { objectsUrl } from "./options";
-import { BucketSearch } from "./bucket-search";
+import { FilterSearch } from "@/components/filter-search";
 
 export default async function BucketsPage({
   searchParams,
@@ -28,7 +28,12 @@ export default async function BucketsPage({
           Refresh
         </Link>
       </div>
-      <BucketSearch prefix={prefix} />
+      <FilterSearch
+        param="prefix"
+        value={prefix}
+        label="Bucket name prefix"
+        placeholder="Find buckets by name prefix"
+      />
       {"error" in result ? (
         <ErrorNotice message={result.error} />
       ) : (

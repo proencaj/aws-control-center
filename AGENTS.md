@@ -43,7 +43,11 @@ AWS_SESSION_TOKEN=     # optional, for temporary credentials
 AWS_REGION=us-east-1   # default region, the UI can override per request
 ```
 
-The SDK picks these up through its default credential chain. Do not pass keys manually to clients.
+Without `accounts.json` the SDK picks these up through its default credential chain.
+
+For several accounts, copy `accounts.example.json` to `accounts.json` (git-ignored, excluded from the image). Each entry has `id` (12-digit account id), `name`, `accessKeyId`, `secretAccessKey` and optional `sessionToken`. The file is read once at startup, so restart after editing. The account is selected in the top bar and stored in the `account` cookie. Switching accounts resets all workspace tabs. It replaces the env vars above while present.
+
+Credentials are read only in `lib/aws/accounts.ts` and handed to clients by `lib/aws/clients.ts`. Do not pass keys anywhere else.
 
 Docker Compose injects `.env.local` at runtime via `env_file`. `.dockerignore` excludes `.env*`, so credentials are never baked into the image.
 

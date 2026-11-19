@@ -8,6 +8,7 @@ const state = vi.hoisted(() => ({
     assertRolling: vi.fn(),
     createService: vi.fn(),
     updateService: vi.fn(),
+    redeployService: vi.fn(),
     runTask: vi.fn(),
     stopTask: vi.fn(),
     setClusterCapacity: vi.fn(),
@@ -190,34 +191,57 @@ describe("ECS action boundaries", () => {
     expect(result.error).toMatch(/confirm/);
     expect(state.ecs.setClusterCapacity).not.toHaveBeenCalled();
   });
-  it("blocks scale-to-zero while autoscaling is active", async () => {
-    state.scaling.getScalingTarget.mockResolvedValue({
-      MinCapacity: 1,
-      MaxCapacity: 10,
-      SuspendedState: {
-        DynamicScalingInSuspended: true,
-        DynamicScalingOutSuspended: true,
-        ScheduledScalingSuspended: false,
-      },
-    });
-    const result = await ecsAction(
-      region,
-      { operation: "scaleZero", cluster: "test", name: "web" },
-      {},
-      form(undefined, "web"),
-    );
-    expect(result.error).toMatch(/Suspend/);
-    expect(state.ecs.updateService).not.toHaveBeenCalled();
+  it("scales to zero and accepts zero desired count without typed confirmation", async () => {
+    for (const [operation, data] of [
+      ["scaleZero", form()],
+      ["updateService", form({ desiredCount: 0 })],
+    ] as const) {
+      state.ecs.updateService.mockClear();
+      const result = await ecsAction(
+        region,
+        { operation, cluster: "test", name: "web" },
+        {},
+        data,
+      );
+      expect(result.error).toBeUndefined();
+      expect(state.ecs.updateService).toHaveBeenCalledWith(
+        region,
+        "test",
+        "web",
+        { desiredCount: 0 },
+      );
+    }
   });
-  it("does not allow unconfirmed zero count through the general update action", async () => {
+});
+describe("service list actions", () => {
+  it("sets a non-zero desired count without typed confirmation", async () => {
     const result = await ecsAction(
       region,
       { operation: "updateService", cluster: "test", name: "web" },
       {},
-      form({ desiredCount: 0 }),
+      form({ desiredCount: 3 }),
     );
-    expect(result.error).toMatch(/confirm/);
-    expect(state.ecs.updateService).not.toHaveBeenCalled();
+    expect(result.error).toBeUndefined();
+    expect(state.ecs.updateService).toHaveBeenCalledWith(
+      region,
+      "test",
+      "web",
+      { desiredCount: 3 },
+    );
+  });
+  it("forces a new deployment", async () => {
+    const result = await ecsAction(
+      region,
+      { operation: "redeploy", cluster: "test", name: "web" },
+      {},
+      form(),
+    );
+    expect(result.error).toBeUndefined();
+    expect(state.ecs.redeployService).toHaveBeenCalledWith(
+      region,
+      "test",
+      "web",
+    );
   });
 });
 describe("autoscaling action validation", () => {

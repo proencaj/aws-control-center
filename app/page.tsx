@@ -55,6 +55,11 @@ export default async function Home() {
                 For temporary credentials, also set{" "}
                 <code>AWS_SESSION_TOKEN</code>.
               </li>
+              <li>
+                Or copy <code>accounts.example.json</code> to{" "}
+                <code>accounts.json</code> and add one entry per account. It
+                replaces the variables above.
+              </li>
               <li>Restart Docker Compose, then reload this page.</li>
             </ol>
           </div>

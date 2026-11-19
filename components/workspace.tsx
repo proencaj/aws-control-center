@@ -3,7 +3,8 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { setRegion } from "@/app/actions";
+import { setAccount, setRegion } from "@/app/actions";
+import { AccountSelect } from "@/components/account-select";
 import { RegionSelect } from "@/components/region-select";
 import { Sidebar } from "@/components/sidebar";
 
@@ -75,10 +76,16 @@ export function WorkspaceShell({
   children,
   initialRegion,
   regions,
+  accounts,
+  currentAccountId,
+  identity,
 }: {
   children: React.ReactNode;
   initialRegion: string;
   regions: string[];
+  accounts: { id: string; name: string }[];
+  currentAccountId?: string;
+  identity?: string;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -225,6 +232,19 @@ export function WorkspaceShell({
     await activate(next);
   }
 
+  // Tabs, cached pages and URLs all belong to one account, so switching drops them.
+  async function changeAccount(accountId: string) {
+    const data = new FormData();
+    data.set("account", accountId);
+    await setAccount(data);
+    // Keep the active tab id. The route still carries it until the navigation lands,
+    // and a new id would make the sync effect re-add the old tab.
+    const next: Workspace = { ...active, href: workspaceHref("/", active.id, active.region), service: "directory", title: "Directory", lastActive: ++activationOrder.current };
+    setCached({});
+    setTabs([next]);
+    router.push(next.href, { scroll: false });
+  }
+
   async function changeRegion(region: string) {
     const root = active.service === "directory" ? "/" : `/${active.service}`;
     const href = workspaceHref(root, active.id, region);
@@ -290,6 +310,8 @@ export function WorkspaceShell({
     void activate(tabs[next]);
   }
 
+  const accountName = accounts.find((account) => account.id === currentAccountId)?.name;
+
   const context: WorkspaceContextValue = {
     activeId,
     activeRegion: active.region,
@@ -303,7 +325,7 @@ export function WorkspaceShell({
       <div className="min-h-screen p-1 md:p-2">
         <div className="console-window flex min-h-[calc(100vh-1rem)] flex-col md:min-h-[calc(100vh-1rem)]">
           <div className="console-title">
-            <span>AWS Control Center</span>
+            <span>AWS Control Center{accountName ? ` / ${accountName}` : ""}</span>
             <span aria-hidden className="flex gap-1">
               <span className="raised block h-3.5 w-4" />
               <span className="raised block h-3.5 w-4" />
@@ -315,7 +337,11 @@ export function WorkspaceShell({
             <div className="flex min-w-0 flex-1 flex-col">
               <header className="flex flex-wrap items-center justify-between gap-3 px-2 py-1.5">
                 <span className="console-kicker">AWS / Resource console</span>
-                <RegionSelect regions={regions} current={active.region} onChange={changeRegion} />
+                <div className="flex flex-wrap items-center gap-3">
+                  {identity && <span className="text-sm" title={identity}>Identity <strong>{identity.length > 20 ? `${identity.slice(0, 17)}...` : identity}</strong></span>}
+                  {currentAccountId && <AccountSelect accounts={accounts} current={currentAccountId} onChange={changeAccount} />}
+                  <RegionSelect regions={regions} current={active.region} onChange={changeRegion} />
+                </div>
               </header>
           <div role="tablist" aria-label="Open workspaces" onKeyDown={tabKeyDown} className="flex max-w-full gap-0.5 overflow-x-auto px-1 pt-1 md:sticky md:top-0 md:z-10">
             {tabs.map((tab) => (
