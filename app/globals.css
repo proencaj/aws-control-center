@@ -21,6 +21,34 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "VT323 Local";
+  src: local("VT323 Regular"), local("VT323");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cousine Local";
+  src: local("Cousine Regular"), local("Cousine");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cinzel Local";
+  src: local("Cinzel Variable"), local("Cinzel");
+  font-weight: 400 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Crimson Text Local";
+  src: local("Crimson Text Regular"), local("Crimson Text");
+  font-weight: 400;
+  font-display: swap;
+}
+
 @theme inline {
   --color-desktop: var(--desktop);
   --color-background: var(--background);

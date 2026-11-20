@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import { WorkspaceShell } from "@/components/workspace";
 import { getAccount, listAccounts } from "@/lib/aws/accounts";
 import { getCallerIdentity, identityName } from "@/lib/sts";
@@ -11,27 +10,6 @@ import "./themes/default.css";
 import "./themes/apple.css";
 import "./themes/win95.css";
 import "./themes/wow.css";
-
-const terminal = localFont({
-  src: "./fonts/VT323-Regular.ttf",
-  variable: "--font-terminal",
-  weight: "400",
-  display: "swap",
-});
-
-const cinzel = localFont({
-  src: "../public/fonts/cinzel.ttf",
-  variable: "--font-cinzel",
-  weight: "400 900",
-  display: "swap",
-});
-
-const crimson = localFont({
-  src: "../public/fonts/crimson-text.ttf",
-  variable: "--font-crimson",
-  weight: "400",
-  display: "swap",
-});
 
 export function generateMetadata(): Metadata {
   const theme = getTheme();
@@ -68,11 +46,7 @@ export default async function RootLayout({
   const [current, regions, account, identity] = await Promise.all([getRegion(), loadRegions(), getAccount(), loadIdentityName()]);
 
   return (
-    <html
-      lang="en"
-      data-theme={theme}
-      className={`${terminal.variable} ${cinzel.variable} ${crimson.variable}`}
-    >
+    <html lang="en" data-theme={theme}>
       <body>
         <WorkspaceShell initialRegion={current} regions={regions} accounts={listAccounts()} currentAccountId={account?.id} identity={identity}>{children}</WorkspaceShell>
       </body>

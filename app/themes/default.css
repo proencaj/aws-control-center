@@ -7,20 +7,20 @@ html[data-theme="default"] {
   --sidebar: #f5f5f5; --control: #f5f5f5; --shadow: transparent; --scrim: #00000066;
   --log-normal: #626262; --log-warning: #414141; --log-error: #1a1a1a;
   --theme-font-sans: "Berkeley Mono Local", Monaco, "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-  --theme-font-mono: var(--theme-font-sans); --theme-font-display: var(--font-terminal), monospace; --theme-radius: 0;
-  --body-size: 0.875rem; --body-leading: 1.6; --app-text-xs: 0.75rem; --app-text-sm: 0.875rem;
-  --heading-weight: 400; --heading-size: 2.5rem; --heading-spacing: 0;
-  --focus-width: 2px; --focus-offset: 3px; --control-font-size: 0.8125rem; --control-weight: 500;
+  --theme-font-mono: var(--theme-font-sans); --theme-font-display: "VT323 Local", "Berkeley Mono Local", Monaco, Consolas, monospace; --theme-radius: 0;
+  --body-size: 0.8125rem; --body-leading: 1.6; --app-text-xs: 0.6875rem; --app-text-sm: 0.8125rem;
+  --heading-weight: 400; --heading-size: 2.25rem; --heading-spacing: 0;
+  --focus-width: 2px; --focus-offset: 3px; --control-font-size: 0.75rem; --control-weight: 500;
   --control-height: 30px; --control-padding: 4px 10px; --field-padding: 5px 8px;
   --control-border: 1px solid var(--border); --field-border: 1px solid var(--border);
   --control-radius: 0; --plain-radius: 0; --panel-radius: 0; --window-radius: 0;
   --control-shadow: none; --control-active-shadow: none; --field-shadow: none;
   --window-border: 3px double var(--border); --window-shadow: none;
   --group-border: 1px solid var(--border); --group-shadow: none;
-  --title-padding: 0.5rem 1rem; --title-border: 0; --title-radius: 0; --title-size: 0.75rem;
+  --title-padding: 0.5rem 1rem; --title-border: 0; --title-radius: 0; --title-size: 0.6875rem;
   --tab-padding: 0.5rem 1rem; --tab-radius: 0; --tab-shadow: none;
   --shell-radius: 0; --shell-shadow: none; --dialog-shadow: 0 12px 40px #0005;
-  --app-title-padding: 0.5rem 1rem; --app-title-radius: 0; --brand-size: 0.75rem;
+  --app-title-padding: 0.5rem 1rem; --app-title-radius: 0; --brand-size: 0.6875rem;
   --backdrop-filter: none; --error-decoration: none;
 }
 
