@@ -9,6 +9,15 @@ export function toUiError(error: unknown): string {
     return "Object changed since it was selected. Refresh and select it again.";
   if (name === "NoSuchBucket" || name === "NoSuchKey")
     return "The bucket or object no longer exists. Refresh the list.";
+  if (name === "RepositoryAlreadyExistsException")
+    return "A repository with that name already exists in the selected region.";
+  if (name === "RepositoryNotEmptyException")
+    return "The repository still contains images. Delete its images before deleting the repository.";
+  if (
+    name === "RepositoryNotFoundException" ||
+    name === "ImageNotFoundException"
+  )
+    return "The repository or image no longer exists. Refresh the list.";
   if (name === "InvalidObjectState")
     return "This archived object must be restored before it can be copied.";
   if (name === "UnauthorizedOperation" || name.startsWith("AccessDenied")) {

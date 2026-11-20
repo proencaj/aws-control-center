@@ -51,6 +51,49 @@ it("allows cancelling a query from the previous region", async () => {
   expect(result.status).toBe(200);
   expect(result.headers.get("Cache-Control")).toBe("no-store");
 });
+it.each(["localhost:3000", "127.0.0.1:3000", "192.168.1.20:3000"])(
+  "accepts the browser origin for host %s behind Docker",
+  async (host) => {
+    mock.on(StartQueryCommand).resolves({ queryId: "query" });
+    const result = await POST(
+      new NextRequest("http://0.0.0.0:3000/logs-explorer/data", {
+        method: "POST",
+        headers: {
+          host,
+          origin: `http://${host}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(input),
+      }),
+    );
+    expect(result.status).toBe(200);
+    expect(mock.commandCalls(StartQueryCommand)).toHaveLength(1);
+  },
+);
+it.each([
+  "https://other.example",
+  "http://localhost:4000",
+  "https://localhost:3000",
+  "http://0.0.0.0:3000",
+  "null",
+])(
+  "rejects origin %s when Host differs from the internal URL",
+  async (origin) => {
+    const result = await POST(
+      new NextRequest("http://0.0.0.0:3000/logs-explorer/data", {
+        method: "POST",
+        headers: {
+          host: "localhost:3000",
+          origin,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(input),
+      }),
+    );
+    expect(result.status).toBe(403);
+    expect(mock.calls()).toHaveLength(0);
+  },
+);
 it("maps permission errors without crashing", async () => {
   mock
     .on(StartQueryCommand)

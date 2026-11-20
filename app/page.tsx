@@ -1,6 +1,12 @@
 import { getCallerIdentity } from "@/lib/sts";
 import Link from "next/link";
-import { Server, Container, ScrollText, HardDrive } from "lucide-react";
+import {
+  Server,
+  Container,
+  ScrollText,
+  HardDrive,
+  Package,
+} from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -20,9 +26,7 @@ export default async function Home() {
       <div className="directory-intro space-y-2">
         <p className="console-kicker">Your workspace</p>
         <h1 className="console-heading">AWS Control Center</h1>
-        <p className="text-sm text-muted">
-          Your resources, all in one place.
-        </p>
+        <p className="text-sm text-muted">Your resources, all in one place.</p>
       </div>
 
       {identity ? (
@@ -69,29 +73,100 @@ export default async function Home() {
 
       <section className="space-y-4" aria-labelledby="service-directory">
         <div className="flex items-center justify-between">
-          <h2 id="service-directory" className="text-lg font-semibold">Services</h2>
+          <h2 id="service-directory" className="text-lg font-semibold">
+            Services
+          </h2>
           <span className="text-xs text-muted">Your AWS workspace</span>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {[
-            { name: "EC2", category: "Compute", description: "Virtual machines, capacity, and network access.", icon: Server, links: [["Instances", "/ec2"], ["Security groups", "/ec2/security-groups"], ["Launch instance", "/ec2/instances/new"]] },
-            { name: "ECS", category: "Containers", description: "Clusters, workloads, and compute capacity.", icon: Container, links: [["Clusters", "/ecs"], ["Task definitions", "/ecs/task-definitions"], ["Capacity providers", "/ecs/capacity-providers"]] },
-            { name: "CloudWatch Logs", category: "Observability", description: "Follow live output and explore your application logs.", icon: ScrollText, links: [["Logs Monitor", "/logs-monitor"], ["Logs Explorer", "/logs-explorer"]] },
-            { name: "S3", category: "Storage", description: "Buckets, objects, and storage classes across all regions.", icon: HardDrive, links: [["Buckets", "/s3"]] },
+            {
+              name: "EC2",
+              category: "Compute",
+              description: "Virtual machines, capacity, and network access.",
+              icon: Server,
+              links: [
+                ["Instances", "/ec2"],
+                ["Security groups", "/ec2/security-groups"],
+                ["Launch instance", "/ec2/instances/new"],
+              ],
+            },
+            {
+              name: "ECS",
+              category: "Containers",
+              description: "Clusters, workloads, and compute capacity.",
+              icon: Container,
+              links: [
+                ["Clusters", "/ecs"],
+                ["Task definitions", "/ecs/task-definitions"],
+                ["Capacity providers", "/ecs/capacity-providers"],
+              ],
+            },
+            {
+              name: "CloudWatch Logs",
+              category: "Observability",
+              description:
+                "Follow live output and explore your application logs.",
+              icon: ScrollText,
+              links: [
+                ["Logs Monitor", "/logs-monitor"],
+                ["Logs Explorer", "/logs-explorer"],
+              ],
+            },
+            {
+              name: "S3",
+              category: "Storage",
+              description:
+                "Buckets, objects, and storage classes across all regions.",
+              icon: HardDrive,
+              links: [["Buckets", "/s3"]],
+            },
+            {
+              name: "ECR",
+              category: "Containers",
+              description:
+                "Private repositories, container images, and Docker push commands.",
+              icon: Package,
+              links: [
+                ["Repositories", "/ecr"],
+                ["Create repository", "/ecr/new"],
+              ],
+            },
           ].map(({ name, category, description, icon: Icon, links }) => (
-            <article key={name} className="service-card" data-service={category}>
+            <article
+              key={name}
+              className="service-card"
+              data-service={category}
+            >
               <div className="flex items-center gap-3">
-                <span className="service-icon"><Icon size={22} aria-hidden /></span>
-                <div><p className="console-kicker">{category}</p><h3 className="text-lg font-semibold">{name}</h3></div>
+                <span className="service-icon">
+                  <Icon size={22} aria-hidden />
+                </span>
+                <div>
+                  <p className="console-kicker">{category}</p>
+                  <h3 className="text-lg font-semibold">{name}</h3>
+                </div>
               </div>
               <p className="text-sm text-muted">{description}</p>
               <ul className="mt-auto flex flex-wrap gap-x-5 gap-y-3 pt-2 text-sm">
-                {links.map(([label, href]) => <li key={href}><Link className="inline-flex items-center gap-1 hover:underline" href={href}>{label}</Link></li>)}
+                {links.map(([label, href]) => (
+                  <li key={href}>
+                    <Link
+                      className="inline-flex items-center gap-1 hover:underline"
+                      href={href}
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </article>
           ))}
         </div>
-        <p className="text-xs text-muted">Regional services use the region selected above. S3 lists buckets globally.</p>
+        <p className="text-xs text-muted">
+          Regional services use the region selected above. S3 lists buckets
+          globally.
+        </p>
       </section>
     </div>
   );
