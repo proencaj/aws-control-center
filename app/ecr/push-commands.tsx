@@ -1,34 +1,11 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Check, Clipboard, Terminal } from "lucide-react";
+import { Terminal } from "lucide-react";
+import { CopyButton } from "@/components/copy-button";
 
 function shellQuote(value: string) {
   return `'${value.replaceAll("'", `'"'"'`)}'`;
-}
-
-function CopyButton({
-  value,
-  label = "Copy",
-}: {
-  value: string;
-  label?: string;
-}) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      type="button"
-      className="btn inline-flex items-center gap-1"
-      onClick={async () => {
-        await navigator.clipboard.writeText(value);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      }}
-    >
-      {copied ? <Check size={14} /> : <Clipboard size={14} />}
-      {copied ? "Copied" : label}
-    </button>
-  );
 }
 
 export function CopyRepositoryUri({ uri }: { uri: string }) {

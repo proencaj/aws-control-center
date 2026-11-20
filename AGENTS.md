@@ -49,6 +49,8 @@ For several accounts, copy `accounts.example.json` to `accounts.json` (git-ignor
 
 Credentials are read only in `lib/aws/accounts.ts` and handed to clients by `lib/aws/clients.ts`. Do not pass keys anywhere else.
 
+The AI Debugger calls the Anthropic API with `CLAUDE_KEY` from `.env.local`. It is read only in `lib/claude.ts`. `CLAUDE_MODEL` picks the model: `opus` (Opus 5.5, default), `sonnet` (Sonnet 5.5) or `haiku` (Haiku 5.5).
+
 Docker Compose injects `.env.local` at runtime via `env_file`. `.dockerignore` excludes `.env*`, so credentials are never baked into the image.
 
 ### Hard rules

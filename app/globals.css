@@ -203,3 +203,11 @@
   }
   @media (prefers-reduced-transparency: reduce) { dialog::backdrop { backdrop-filter: none; } }
 }
+
+@media print {
+  body * { visibility: hidden; }
+  html:not([data-print="flow"]) .print-area, html:not([data-print="flow"]) .print-area *,
+  html[data-print="flow"] .print-flow, html[data-print="flow"] .print-flow * { visibility: visible; }
+  .print-area, .print-flow { position: absolute; top: 0; left: 0; width: 100%; background: white; color: black; box-shadow: none; border: 0; }
+  html[data-print="flow"] .print-area { display: none; }
+}

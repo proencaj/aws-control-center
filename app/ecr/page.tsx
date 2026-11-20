@@ -17,7 +17,9 @@ function queryUrl(query: string, next?: string) {
 
 export default async function RepositoriesPage({
   searchParams,
-}: PageProps<"/ecr">) {
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const params = await searchParams;
   const query = typeof params.q === "string" ? params.q : "";
   const next = typeof params.next === "string" ? params.next : undefined;

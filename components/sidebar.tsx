@@ -9,6 +9,7 @@ import {
   HardDrive,
   Plus,
   Package,
+  Bot,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -23,6 +24,7 @@ const items = [
   { label: "Logs Explorer", href: "/logs-explorer", icon: Search },
   { label: "S3", href: "/s3", icon: HardDrive },
   { label: "ECR", href: "/ecr", icon: Package },
+  { label: "AI Debugger", href: "/ai-debugger", icon: Bot },
 ];
 
 export function Sidebar() {

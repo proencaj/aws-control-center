@@ -550,7 +550,13 @@ export function Explorer({
           / {page.statistics?.recordsMatched ?? 0} matched
         </span>
       </div>
-      <Results rows={page.rows} onContext={setPointer} />
+      <Results
+        rows={page.rows}
+        onContext={setPointer}
+        onAnalyse={() => {
+          if (running || busy) void cancel();
+        }}
+      />
       <div className="flex flex-wrap justify-between gap-3 text-xs text-muted">
         <span>
           {trimmed ? "Display cap reached. " : ""}Up to 5,000 rows / 2 million

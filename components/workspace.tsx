@@ -39,7 +39,7 @@ function serviceFor(pathname: string) {
 function titleFor(pathname: string) {
   const parts = pathname.split("/").filter(Boolean).map(decodeURIComponent);
   if (!parts.length) return "Directory";
-  const service = parts[0] === "logs-monitor" ? "Logs Monitor" : parts[0] === "logs-explorer" ? "Logs Explorer" : parts[0].toUpperCase();
+  const service = parts[0] === "logs-monitor" ? "Logs Monitor" : parts[0] === "logs-explorer" ? "Logs Explorer" : parts[0] === "ai-debugger" ? "AI Debugger" : parts[0].toUpperCase();
   const resource = parts.at(-1);
   return resource && resource !== parts[0] ? `${service} · ${resource}` : service;
 }

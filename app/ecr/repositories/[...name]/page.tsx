@@ -43,7 +43,10 @@ function imagesUrl(
 export default async function RepositoryPage({
   params,
   searchParams,
-}: PageProps<"/ecr/repositories/[...name]">) {
+}: {
+  params: Promise<{ name: string[] }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const [{ name: parts }, queryParams, region, identity] = await Promise.all([
     params,
     searchParams,

@@ -6,6 +6,7 @@ import {
   ScrollText,
   HardDrive,
   Package,
+  Bot,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -131,6 +132,13 @@ export default async function Home() {
                 ["Repositories", "/ecr"],
                 ["Create repository", "/ecr/new"],
               ],
+            },
+            {
+              name: "AI Debugger",
+              category: "Diagnostics",
+              description: "Paste logs and get a Claude-written analysis.",
+              icon: Bot,
+              links: [["Analyse logs", "/ai-debugger"]],
             },
           ].map(({ name, category, description, icon: Icon, links }) => (
             <article
