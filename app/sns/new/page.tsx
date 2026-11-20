@@ -1,0 +1,6 @@
+import { ActionForm } from "@/components/action-form";
+import { getRegion } from "@/lib/aws/clients";
+import { getCallerIdentity } from "@/lib/sts";
+import { createTopicAction } from "../actions";
+
+export default async function NewTopicPage() { const [region, identity] = await Promise.all([getRegion(), getCallerIdentity()]); return <section className="console-window"><div className="console-title">Create topic</div><ActionForm action={createTopicAction} className="space-y-5 p-5"><input type="hidden" name="region" value={region} /><input type="hidden" name="account" value={identity.account} /><div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1 text-sm"><span>Topic name</span><input required className="w-full" name="topicName" maxLength={256} /></label><label className="space-y-1 text-sm"><span>Type</span><select className="w-full" name="topicType"><option value="standard">Standard</option><option value="fifo">FIFO</option></select></label></div><label className="flex items-center gap-2 text-sm"><input type="checkbox" name="contentBasedDeduplication" /> Content-based deduplication (FIFO only)</label><p className="text-xs text-muted">FIFO topic names receive the .fifo suffix automatically.</p><div className="flex justify-end"><button className="font-bold">Create topic</button></div></ActionForm></section>; }

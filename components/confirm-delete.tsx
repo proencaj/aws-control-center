@@ -8,6 +8,7 @@ export function ConfirmDelete({
   resourceName,
   label,
   impact,
+  hiddenFields,
 }: {
   action: (
     previous: { error?: string },
@@ -16,6 +17,7 @@ export function ConfirmDelete({
   resourceName: string;
   label: string;
   impact: string;
+  hiddenFields?: Record<string, string>;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [typed, setTyped] = useState("");
@@ -36,12 +38,14 @@ export function ConfirmDelete({
       >
         <p className="console-title">Confirmation required</p>
         <ActionForm action={action} className="space-y-4 p-4">
+          {Object.entries(hiddenFields ?? {}).map(([name, value]) => (
+            <input key={name} type="hidden" name={name} value={value} />
+          ))}
           <h2 className="console-heading">{label}</h2>
           <p className="text-sm">{impact}</p>
           <label className="block space-y-1 text-sm">
             <span>
-              Type <code className="font-bold">{resourceName}</code> to
-              confirm
+              Type <code className="font-bold">{resourceName}</code> to confirm
             </span>
             <input
               name="confirm"
@@ -55,7 +59,11 @@ export function ConfirmDelete({
             <button type="button" onClick={() => dialog.current?.close()}>
               Cancel
             </button>
-            <button type="submit" disabled={typed !== resourceName} className="font-bold">
+            <button
+              type="submit"
+              disabled={typed !== resourceName}
+              className="font-bold"
+            >
               {label}
             </button>
           </div>

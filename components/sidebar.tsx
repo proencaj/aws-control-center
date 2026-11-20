@@ -8,6 +8,11 @@ import {
   ScrollText,
   HardDrive,
   Plus,
+  Package,
+  Bot,
+  Zap,
+  Bell,
+  MessageSquare,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -21,6 +26,11 @@ const items = [
   { label: "Logs Monitor", href: "/logs-monitor", icon: ScrollText },
   { label: "Logs Explorer", href: "/logs-explorer", icon: Search },
   { label: "S3", href: "/s3", icon: HardDrive },
+  { label: "ECR", href: "/ecr", icon: Package },
+  { label: "Lambda", href: "/lambda", icon: Zap },
+  { label: "SNS", href: "/sns", icon: Bell },
+  { label: "SQS", href: "/sqs", icon: MessageSquare },
+  { label: "AI Debugger", href: "/ai-debugger", icon: Bot },
 ];
 
 export function Sidebar() {
@@ -51,18 +61,27 @@ export function Sidebar() {
         className="flex min-h-0 flex-1 flex-wrap content-start gap-1 text-sm md:flex-col md:flex-nowrap md:overflow-y-auto"
       >
         {visible.map(({ label, href, icon: Icon }) => (
-          <div
-            key={href}
-            className="sidebar-item flex items-center"
-          >
+          <div key={href} className="sidebar-item flex items-center">
             <button
-              aria-current={pathname === href || (href !== "/" && pathname.startsWith(href)) ? "page" : undefined}
+              aria-current={
+                pathname === href || (href !== "/" && pathname.startsWith(href))
+                  ? "page"
+                  : undefined
+              }
               onClick={() => openService(href)}
               className="plain flex flex-1 items-center gap-2.5 bg-transparent px-2 py-2 text-left shadow-none"
             >
-              <Icon size={16} />{label}
+              <Icon size={16} />
+              {label}
             </button>
-            <button aria-label={`Open another ${label} tab`} title="Open in new tab" onClick={() => openService(href, true)} className="btn-icon m-px p-0.5"><Plus size={12} /></button>
+            <button
+              aria-label={`Open another ${label} tab`}
+              title="Open in new tab"
+              onClick={() => openService(href, true)}
+              className="btn-icon m-px p-0.5"
+            >
+              <Plus size={12} />
+            </button>
           </div>
         ))}
         {visible.length === 0 && <p className="px-2 py-1">No results</p>}

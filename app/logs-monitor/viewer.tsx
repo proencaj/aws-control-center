@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { LogGroupPage, LogPage } from "@/lib/cloudwatch-logs";
+import { AnalyseDialog } from "@/app/ai-debugger/analyse-dialog";
 import { useWorkspaceActive } from "@/components/workspace";
 import { formatLog, mergeLogs, type LogEvent } from "./log-buffer";
 
@@ -477,6 +478,12 @@ export function LogsViewer({
             >
               Jump to latest
             </button>
+            <AnalyseDialog
+              lines={events.map((event) => formatLog(event).text)}
+              onOpen={() => {
+                if (session.current) stop();
+              }}
+            />
           </div>
         </div>
         <pre

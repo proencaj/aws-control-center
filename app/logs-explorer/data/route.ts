@@ -70,9 +70,15 @@ export async function GET(request: NextRequest) {
   }
 }
 export async function POST(request: NextRequest) {
+  // Next.js may build nextUrl with the container's listening address. Host
+  // retains the address (including port) that the browser actually requested.
+  const host = request.headers.get("host");
+  const expectedOrigin = host
+    ? new URL(`${request.nextUrl.protocol}//${host}`).origin
+    : request.nextUrl.origin;
   if (
     request.headers.get("origin") &&
-    request.headers.get("origin") !== request.nextUrl.origin
+    request.headers.get("origin") !== expectedOrigin
   )
     return json({ error: "Cross-origin requests are not allowed." }, 403);
   try {

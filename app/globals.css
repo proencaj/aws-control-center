@@ -180,6 +180,33 @@
   .app-shell { background: var(--background); border-radius: var(--shell-radius); box-shadow: var(--shell-shadow); }
   .app-title { padding: var(--app-title-padding); background: var(--sidebar); border-radius: var(--app-title-radius); }
   .app-title > span { color: var(--foreground); font-size: var(--brand-size); font-weight: var(--heading-weight); }
+  .app-account-tools > span { color: var(--title-muted); font-size: var(--app-text-xs); font-weight: 400; }
+  .title-icon-button, .theme-switch {
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+    min-height: 26px; color: var(--foreground); border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+    background: color-mix(in srgb, currentColor 9%, transparent); box-shadow: none;
+  }
+  .title-icon-button { width: 28px; border-radius: var(--control-radius); }
+  .title-icon-button:hover, .theme-switch:hover { background: color-mix(in srgb, currentColor 18%, transparent); }
+  .privacy-hidden-icon { display: none; }
+  .private-mask { display: none !important; }
+  html[data-account-details="hidden"] .privacy-visible-icon { display: none; }
+  html[data-account-details="hidden"] .privacy-hidden-icon { display: block; }
+  html[data-account-details="hidden"] .private-value { display: none !important; }
+  html[data-account-details="hidden"] .private-mask { display: inline-flex !important; }
+  .theme-switch { position: relative; width: 48px; justify-content: space-between; padding: 0 6px; border-radius: 999px; }
+  .theme-switch svg { position: relative; z-index: 1; }
+  .theme-switch-thumb {
+    position: absolute; z-index: 0; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--foreground); transition: transform 150ms ease;
+  }
+  html[data-color-mode="dark"] .theme-switch-thumb { transform: translateX(21px); }
+  html[data-color-mode="light"] .theme-switch > svg:first-child,
+  html[data-color-mode="dark"] .theme-switch > svg:nth-child(2) { color: var(--background); }
+  @media (prefers-color-scheme: dark) {
+    html:not([data-color-mode]) .theme-switch-thumb { transform: translateX(21px); }
+    html:not([data-color-mode]) .theme-switch > svg:nth-child(2) { color: var(--background); }
+  }
   .brand-icon { display: none; }
   html[data-theme="default"] .brand-default, html[data-theme="apple"] .brand-apple,
   html[data-theme="win95"] .brand-win95, html[data-theme="wow"] .brand-wow { display: inline-flex; }
@@ -202,4 +229,12 @@
     .console-heading { font-size: 24px; }
   }
   @media (prefers-reduced-transparency: reduce) { dialog::backdrop { backdrop-filter: none; } }
+}
+
+@media print {
+  body * { visibility: hidden; }
+  html:not([data-print="flow"]) .print-area, html:not([data-print="flow"]) .print-area *,
+  html[data-print="flow"] .print-flow, html[data-print="flow"] .print-flow * { visibility: visible; }
+  .print-area, .print-flow { position: absolute; top: 0; left: 0; width: 100%; background: white; color: black; box-shadow: none; border: 0; }
+  html[data-print="flow"] .print-area { display: none; }
 }

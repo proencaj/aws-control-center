@@ -8,6 +8,8 @@ import {
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { Results } from "./results";
+
+vi.mock("@/app/ai-debugger/analyse-dialog", () => ({ AnalyseDialog: () => null }));
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
@@ -24,6 +26,7 @@ it("renders ANSI logs safely in grayscale and opens their context", () => {
         },
       ]}
       onContext={onContext}
+      onAnalyse={vi.fn()}
     />,
   );
   expect(
@@ -36,7 +39,7 @@ it("renders ANSI logs safely in grayscale and opens their context", () => {
 });
 it("falls back to a table for aggregates without context actions", () => {
   render(
-    <Results rows={[{ count: "4", level: "ERROR" }]} onContext={vi.fn()} />,
+    <Results rows={[{ count: "4", level: "ERROR" }]} onContext={vi.fn()} onAnalyse={vi.fn()} />,
   );
   expect(screen.getByRole("table").textContent).toContain("4");
   expect(screen.queryByRole("button", { name: "View context" })).toBeNull();
@@ -61,7 +64,7 @@ it("highlights worker matches, navigates, and clears stale results", async () =>
   }
   vi.stubGlobal("Worker", WorkerMock);
   const view = render(
-    <Results rows={[{ "@message": "hello hello" }]} onContext={vi.fn()} />,
+    <Results rows={[{ "@message": "hello hello" }]} onContext={vi.fn()} onAnalyse={vi.fn()} />,
   );
   fireEvent.change(screen.getByLabelText("Find in loaded results"), {
     target: { value: "hello" },
@@ -71,7 +74,7 @@ it("highlights worker matches, navigates, and clears stale results", async () =>
   fireEvent.click(screen.getByRole("button", { name: "Next match" }));
   expect(scroll).toHaveBeenCalled();
   view.rerender(
-    <Results rows={[{ "@message": "different" }]} onContext={vi.fn()} />,
+    <Results rows={[{ "@message": "different" }]} onContext={vi.fn()} onAnalyse={vi.fn()} />,
   );
   expect(view.container.querySelectorAll("mark")).toHaveLength(0);
 });

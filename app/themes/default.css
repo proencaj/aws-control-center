@@ -39,7 +39,7 @@ html[data-theme="default"] .sidebar-item:has([aria-current="page"]) { background
 html[data-theme="default"] main tbody tr:hover { background: var(--surface); }
 
 @media (prefers-color-scheme: dark) {
-  html[data-theme="default"] {
+  html[data-theme="default"]:not([data-color-mode]) {
     color-scheme: dark;
     --desktop: #111111; --background: #111111; --surface: #1c1c1c; --field: #111111;
     --foreground: #eeeeee; --muted: #aaaaaa; --disabled: #777777; --border: #606060;
@@ -47,4 +47,13 @@ html[data-theme="default"] main tbody tr:hover { background: var(--surface); }
     --selection: #eeeeee; --selection-foreground: #111111; --accent: #eeeeee; --hover: #1c1c1c;
     --sidebar: #111111; --control: #1c1c1c; --log-normal: #aaaaaa; --log-warning: #cccccc; --log-error: #eeeeee;
   }
+}
+
+html[data-theme="default"][data-color-mode="dark"] {
+  color-scheme: dark;
+  --desktop: #111111; --background: #111111; --surface: #1c1c1c; --field: #111111;
+  --foreground: #eeeeee; --muted: #aaaaaa; --disabled: #777777; --border: #606060;
+  --title: #eeeeee; --title-foreground: #111111; --title-muted: #333333;
+  --selection: #eeeeee; --selection-foreground: #111111; --accent: #eeeeee; --hover: #1c1c1c;
+  --sidebar: #111111; --control: #1c1c1c; --log-normal: #aaaaaa; --log-warning: #cccccc; --log-error: #eeeeee;
 }

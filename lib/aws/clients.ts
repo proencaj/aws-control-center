@@ -2,10 +2,14 @@ import { CloudWatchClient } from "@aws-sdk/client-cloudwatch";
 import { S3Client } from "@aws-sdk/client-s3";
 import { CloudWatchLogsClient } from "@aws-sdk/client-cloudwatch-logs";
 import { IAMClient } from "@aws-sdk/client-iam";
+import { LambdaClient } from "@aws-sdk/client-lambda";
 import { ElasticLoadBalancingV2Client } from "@aws-sdk/client-elastic-load-balancing-v2";
 import { AutoScalingClient } from "@aws-sdk/client-auto-scaling";
 import { ApplicationAutoScalingClient } from "@aws-sdk/client-application-auto-scaling";
 import { ECSClient } from "@aws-sdk/client-ecs";
+import { ECRClient } from "@aws-sdk/client-ecr";
+import { SNSClient } from "@aws-sdk/client-sns";
+import { SQSClient } from "@aws-sdk/client-sqs";
 import "server-only";
 import { EC2Client } from "@aws-sdk/client-ec2";
 import { STSClient } from "@aws-sdk/client-sts";
@@ -38,7 +42,11 @@ function clientFor<Client>(
   clients.set(Service, byRegion);
   let client = byRegion.get(region) as Client | undefined;
   if (!client) {
-    client = new Service({ region, credentials: hasAccounts() ? accountCredentials : undefined, ...extra });
+    client = new Service({
+      region,
+      credentials: hasAccounts() ? accountCredentials : undefined,
+      ...extra,
+    });
     byRegion.set(region, client);
   }
   return client;
@@ -49,12 +57,21 @@ export async function ec2Client(selectedRegion?: string) {
 }
 
 export const ecsClient = (region: string) => clientFor(ECSClient, region);
-export const applicationAutoScalingClient = (region: string) => clientFor(ApplicationAutoScalingClient, region);
-export const autoScalingClient = (region: string) => clientFor(AutoScalingClient, region);
-export const elbv2Client = (region: string) => clientFor(ElasticLoadBalancingV2Client, region);
+export const ecrClient = (region: string) => clientFor(ECRClient, region);
+export const snsClient = (region: string) => clientFor(SNSClient, region);
+export const sqsClient = (region: string) => clientFor(SQSClient, region);
+export const applicationAutoScalingClient = (region: string) =>
+  clientFor(ApplicationAutoScalingClient, region);
+export const autoScalingClient = (region: string) =>
+  clientFor(AutoScalingClient, region);
+export const elbv2Client = (region: string) =>
+  clientFor(ElasticLoadBalancingV2Client, region);
 export const iamClient = (region: string) => clientFor(IAMClient, region);
-export const cloudWatchClient = (region: string) => clientFor(CloudWatchClient, region);
-export const cloudWatchLogsClient = (region: string) => clientFor(CloudWatchLogsClient, region);
+export const lambdaClient = (region: string) => clientFor(LambdaClient, region);
+export const cloudWatchClient = (region: string) =>
+  clientFor(CloudWatchClient, region);
+export const cloudWatchLogsClient = (region: string) =>
+  clientFor(CloudWatchLogsClient, region);
 export const stsClient = (region: string) => clientFor(STSClient, region);
 export const s3Client = (region = process.env.AWS_REGION ?? "us-east-1") =>
   clientFor(S3Client, region, { followRegionRedirects: true });

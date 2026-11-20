@@ -9,6 +9,8 @@ import {
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { LogsViewer } from "./viewer";
 
+vi.mock("@/app/ai-debugger/analyse-dialog", () => ({ AnalyseDialog: () => null }));
+
 const fetchMock = vi.fn();
 const now = Date.UTC(2026, 10, 19);
 const log = (id: string, time = now, text = id) => ({

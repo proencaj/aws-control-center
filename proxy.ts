@@ -15,5 +15,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/ec2/:path*", "/ecs/:path*", "/logs-monitor/:path*", "/logs-explorer/:path*"],
+  matcher: ["/", "/ec2/:path*", "/ecs/:path*", "/lambda/:path*", "/sns/:path*", "/sqs/:path*", "/logs-monitor/:path*", "/logs-explorer/:path*"],
 };

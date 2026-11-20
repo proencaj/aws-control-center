@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import stripAnsi from "strip-ansi";
+import { AnalyseDialog } from "@/app/ai-debugger/analyse-dialog";
 import { formatLog } from "@/app/logs-monitor/log-buffer";
 import { timestamp } from "./client";
 import type { Match } from "./search.worker";
@@ -8,9 +9,11 @@ import type { Match } from "./search.worker";
 export function Results({
   rows,
   onContext,
+  onAnalyse,
 }: {
   rows: Record<string, string>[];
   onContext: (pointer: string) => void;
+  onAnalyse: () => void;
 }) {
   const [view, setView] = useState("console");
   const [term, setTerm] = useState("");
@@ -198,6 +201,10 @@ export function Results({
           {matches.length ? selected + 1 : 0} / {matches.length}
           {matches.length === 2000 ? "+" : ""}
         </span>
+        <AnalyseDialog
+          lines={cells.map((row) => row.join(" | "))}
+          onOpen={onAnalyse}
+        />
       </div>
       {term && search.error && (
         <p role="alert" className="p-3 text-sm">
