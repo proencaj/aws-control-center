@@ -58,3 +58,18 @@ it("opens another workspace for the same service and closes it", async () => {
   fireEvent.click(closeButtons.at(-1)!);
   await waitFor(() => expect(screen.getAllByRole("tab", { name: "EC2" })).toHaveLength(1));
 });
+
+it("uses Lambda title casing for restored service and resource tabs", async () => {
+  sessionStorage.setItem("aws-control-center.workspaces.v1", JSON.stringify({
+    activeId: "lambda",
+    tabs: [
+      { id: "lambda", href: "/lambda?tab=lambda&region=us-east-1", service: "lambda", title: "LAMBDA", region: "us-east-1", lastActive: 2 },
+      { id: "function", href: "/lambda/functions/MyFunction?tab=function&region=us-east-1", service: "lambda", title: "LAMBDA · MyFunction", region: "us-east-1", lastActive: 1 },
+    ],
+  }));
+
+  render(<WorkspaceShell initialRegion="us-east-1" regions={["us-east-1"]} accounts={[]}><p>Lambda content</p></WorkspaceShell>);
+
+  expect(await screen.findByRole("tab", { name: "Lambda" })).toBeTruthy();
+  expect(screen.getByRole("tab", { name: "Lambda · MyFunction" })).toBeTruthy();
+});

@@ -11,6 +11,12 @@ export function toUiError(error: unknown): string {
     return "The bucket or object no longer exists. Refresh the list.";
   if (name === "RepositoryAlreadyExistsException")
     return "A repository with that name already exists in the selected region.";
+  if (name === "ResourceConflictException")
+    return `The function changed or another update is still in progress. Refresh and try again. ${message}`;
+  if (name === "CodeStorageExceededException")
+    return "The account's Lambda code storage quota is full. Remove unused functions or versions and try again.";
+  if (name === "InvalidZipFileException" || name === "CodeVerificationFailedException")
+    return `Lambda rejected the deployment package. ${message}`;
   if (name === "RepositoryNotEmptyException")
     return "The repository still contains images. Delete its images before deleting the repository.";
   if (
@@ -20,6 +26,10 @@ export function toUiError(error: unknown): string {
     return "The repository or image no longer exists. Refresh the list.";
   if (name === "InvalidObjectState")
     return "This archived object must be restored before it can be copied.";
+  if (name === "QueueDoesNotExist")
+    return "The queue no longer exists in the selected region. Refresh the queue list.";
+  if (name === "NotFoundException" && /topic/i.test(message))
+    return "The topic no longer exists in the selected region. Refresh the topic list.";
   if (name === "UnauthorizedOperation" || name.startsWith("AccessDenied")) {
     return `Access denied. Your IAM identity lacks permission for this action. ${message}`;
   }

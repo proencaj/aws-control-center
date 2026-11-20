@@ -67,7 +67,7 @@ html[data-theme="win95"] summary { cursor: default; }
 }
 
 @media (prefers-color-scheme: dark) {
-  html[data-theme="win95"] {
+  html[data-theme="win95"]:not([data-color-mode]) {
     color-scheme: dark;
     --desktop: #102828; --background: #303030; --surface: #303030; --field: #181818;
     --foreground: #f0f0f0; --muted: #b8b8b8; --disabled: #7a7a7a; --border: #6a6a6a;
@@ -75,4 +75,13 @@ html[data-theme="win95"] summary { cursor: default; }
     --bevel-light: #7a7a7a; --bevel-soft: #484848; --bevel-shadow: #141414; --bevel-dark: #000000;
     --log-normal: #b8b8b8; --log-warning: #f0f0f0; --log-error: #f0f0f0;
   }
+}
+
+html[data-theme="win95"][data-color-mode="dark"] {
+  color-scheme: dark;
+  --desktop: #102828; --background: #303030; --surface: #303030; --field: #181818;
+  --foreground: #f0f0f0; --muted: #b8b8b8; --disabled: #7a7a7a; --border: #6a6a6a;
+  --title: #183858; --selection: #2a5a98; --hover: #484848; --sidebar: #303030; --control: #303030;
+  --bevel-light: #7a7a7a; --bevel-soft: #484848; --bevel-shadow: #141414; --bevel-dark: #000000;
+  --log-normal: #b8b8b8; --log-warning: #f0f0f0; --log-error: #f0f0f0;
 }

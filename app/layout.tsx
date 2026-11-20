@@ -46,7 +46,14 @@ export default async function RootLayout({
   const [current, regions, account, identity] = await Promise.all([getRegion(), loadRegions(), getAccount(), loadIdentityName()]);
 
   return (
-    <html lang="en" data-theme={theme}>
+    <html lang="en" data-theme={theme} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var r=document.documentElement,m=localStorage.getItem("aws-control-center.color-mode"),p=localStorage.getItem("aws-control-center.account-details");if(m==="light"||m==="dark")r.dataset.colorMode=m;if(p==="hidden")r.dataset.accountDetails="hidden"}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body>
         <WorkspaceShell initialRegion={current} regions={regions} accounts={listAccounts()} currentAccountId={account?.id} identity={identity}>{children}</WorkspaceShell>
       </body>

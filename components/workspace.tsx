@@ -5,6 +5,7 @@ import { Cloud, Shield, Terminal, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { setAccount, setRegion } from "@/app/actions";
 import { AccountSelect } from "@/components/account-select";
+import { AppearanceControls } from "@/components/appearance-controls";
 import { RegionSelect } from "@/components/region-select";
 import { Sidebar } from "@/components/sidebar";
 
@@ -36,10 +37,23 @@ function serviceFor(pathname: string) {
   return pathname.split("/")[1] || "directory";
 }
 
+const serviceTitles: Record<string, string> = {
+  "ai-debugger": "AI Debugger",
+  ecr: "ECR",
+  ec2: "EC2",
+  ecs: "ECS",
+  lambda: "Lambda",
+  sns: "SNS",
+  sqs: "SQS",
+  "logs-explorer": "Logs Explorer",
+  "logs-monitor": "Logs Monitor",
+  s3: "S3",
+};
+
 function titleFor(pathname: string) {
   const parts = pathname.split("/").filter(Boolean).map(decodeURIComponent);
   if (!parts.length) return "Directory";
-  const service = parts[0] === "logs-monitor" ? "Logs Monitor" : parts[0] === "logs-explorer" ? "Logs Explorer" : parts[0] === "ai-debugger" ? "AI Debugger" : parts[0].toUpperCase();
+  const service = serviceTitles[parts[0]] ?? parts[0].toUpperCase();
   const resource = parts.at(-1);
   return resource && resource !== parts[0] ? `${service} · ${resource}` : service;
 }
@@ -122,11 +136,15 @@ export function WorkspaceShell({
 
     const urlId = new URL(window.location.href).searchParams.get("tab");
     if (restored?.tabs.length) {
-      const selected = urlId && restored.tabs.some((tab) => tab.id === urlId) ? urlId : restored.activeId;
-      activationOrder.current = Math.max(1, ...restored.tabs.map((tab) => tab.lastActive));
+      const restoredTabs = restored.tabs.map((tab) => ({
+        ...tab,
+        title: titleFor(new URL(tab.href, window.location.origin).pathname),
+      }));
+      const selected = urlId && restoredTabs.some((tab) => tab.id === urlId) ? urlId : restored.activeId;
+      activationOrder.current = Math.max(1, ...restoredTabs.map((tab) => tab.lastActive));
       // Storage hydration must happen after the server-rendered shell mounts.
-      setTabs(restored.tabs);
-      setActiveId(restored.tabs.some((tab) => tab.id === selected) ? selected : restored.tabs[0].id);
+      setTabs(restoredTabs);
+      setActiveId(restoredTabs.some((tab) => tab.id === selected) ? selected : restoredTabs[0].id);
     } else if (!urlId) {
       const nextId = id();
       const href = workspaceHref(window.location.href, nextId, initialRegion);
@@ -332,7 +350,13 @@ export function WorkspaceShell({
               <span className="brand-icon brand-wow brand-emblem" aria-hidden><Shield size={22} /></span>
               AWS Control Center
             </span>
-            <span>{accountName ?? "Personal workspace"}</span>
+            <div className="app-account-tools flex items-center gap-2">
+              <span>
+                <span className="private-value">{accountName ?? "Personal workspace"}</span>
+                <span className="private-mask">****</span>
+              </span>
+              <AppearanceControls />
+            </div>
           </div>
           <div className="flex min-w-0 flex-1 flex-col md:flex-row">
             <Sidebar />
@@ -340,7 +364,7 @@ export function WorkspaceShell({
               <header className="app-toolbar flex flex-wrap items-center justify-between gap-3 px-5 py-3">
                 <span className="console-kicker">Resource console</span>
                 <div className="flex flex-wrap items-center gap-3">
-                  {identity && <span className="text-sm" title={identity}>Identity <strong>{identity.length > 20 ? `${identity.slice(0, 17)}...` : identity}</strong></span>}
+                  {identity && <span className="text-sm">Identity <strong className="private-value" title={identity}>{identity.length > 20 ? `${identity.slice(0, 17)}...` : identity}</strong><strong className="private-mask">****</strong></span>}
                   {currentAccountId && <AccountSelect accounts={accounts} current={currentAccountId} onChange={changeAccount} />}
                   <RegionSelect regions={regions} current={active.region} onChange={changeRegion} />
                 </div>

@@ -10,6 +10,9 @@ import {
   Plus,
   Package,
   Bot,
+  Zap,
+  Bell,
+  MessageSquare,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -24,6 +27,9 @@ const items = [
   { label: "Logs Explorer", href: "/logs-explorer", icon: Search },
   { label: "S3", href: "/s3", icon: HardDrive },
   { label: "ECR", href: "/ecr", icon: Package },
+  { label: "Lambda", href: "/lambda", icon: Zap },
+  { label: "SNS", href: "/sns", icon: Bell },
+  { label: "SQS", href: "/sqs", icon: MessageSquare },
   { label: "AI Debugger", href: "/ai-debugger", icon: Bot },
 ];
 

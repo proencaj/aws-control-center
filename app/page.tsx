@@ -7,6 +7,9 @@ import {
   HardDrive,
   Package,
   Bot,
+  Zap,
+  Bell,
+  MessageSquare,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -131,6 +134,37 @@ export default async function Home() {
               links: [
                 ["Repositories", "/ecr"],
                 ["Create repository", "/ecr/new"],
+              ],
+            },
+            {
+              name: "Lambda",
+              category: "Compute",
+              description:
+                "Functions, triggers, deployments, configuration, and invocation.",
+              icon: Zap,
+              links: [
+                ["Functions", "/lambda"],
+                ["Create function", "/lambda/new"],
+              ],
+            },
+            {
+              name: "SNS",
+              category: "Messaging",
+              description: "Topics, SQS subscriptions, and message publishing.",
+              icon: Bell,
+              links: [
+                ["Topics", "/sns"],
+                ["Create topic", "/sns/new"],
+              ],
+            },
+            {
+              name: "SQS",
+              category: "Messaging",
+              description: "Queues, message sending, polling, and inspection.",
+              icon: MessageSquare,
+              links: [
+                ["Queues", "/sqs"],
+                ["Create queue", "/sqs/new"],
               ],
             },
             {
