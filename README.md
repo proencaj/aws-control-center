@@ -30,7 +30,7 @@ The value controls typography, colors, surfaces, controls, favicon, and cursor. 
 docker compose up -d --force-recreate app
 ```
 
-The default theme uses locally installed Berkeley Mono when available and falls back to the system monospace stack. Private font files are not required. VT323, Cinzel, and Crimson Text are self-hosted with their open-font licenses. Apple system fonts are referenced locally and are never bundled.
+Themes use locally installed fonts when available and fall back to matching system stacks. The default theme prefers VT323 and Berkeley Mono, Windows 95 prefers MS Sans Serif and Cousine, WoW prefers Cinzel and Crimson Text, and Apple uses the system Apple font stack. No font files are bundled or required.
 
 ## ECS console
 

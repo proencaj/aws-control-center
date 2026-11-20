@@ -8,11 +8,11 @@ html[data-theme="win95"] {
   --bevel-light: #ffffff; --bevel-soft: #dfdfdf; --bevel-shadow: #808080; --bevel-dark: #0a0a0a;
   --log-normal: #404040; --log-warning: #000000; --log-error: #000000;
   --theme-font-sans: "MS Sans Serif", Tahoma, Arial, sans-serif;
-  --theme-font-mono: "Berkeley Mono Local", Monaco, Consolas, monospace;
+  --theme-font-mono: "Cousine Local", "Courier New", monospace;
   --theme-font-display: var(--theme-font-sans); --theme-radius: 0;
-  --body-size: 14px; --body-leading: 1.4; --app-text-xs: 0.75rem; --app-text-sm: 0.875rem;
-  --heading-weight: 700; --heading-size: 18px; --heading-spacing: 0;
-  --focus-width: 1px; --focus-offset: -4px; --control-font-size: 13px; --control-weight: 400;
+  --body-size: 13px; --body-leading: 1.4; --app-text-xs: 0.6875rem; --app-text-sm: 0.8125rem;
+  --heading-weight: 700; --heading-size: 16px; --heading-spacing: 0;
+  --focus-width: 1px; --focus-offset: -4px; --control-font-size: 12px; --control-weight: 400;
   --control-height: 23px; --control-padding: 3px 12px; --field-padding: 3px 4px;
   --control-border: 0; --field-border: 0; --control-radius: 0; --plain-radius: 0; --panel-radius: 0; --window-radius: 0;
   --control-shadow: inset -1px -1px var(--bevel-dark), inset 1px 1px var(--bevel-light), inset -2px -2px var(--bevel-shadow), inset 2px 2px var(--bevel-soft);
@@ -20,10 +20,10 @@ html[data-theme="win95"] {
   --field-shadow: inset -1px -1px var(--bevel-light), inset 1px 1px var(--bevel-shadow), inset -2px -2px var(--bevel-soft), inset 2px 2px var(--bevel-dark);
   --window-border: 0; --window-shadow: inset -1px -1px var(--bevel-dark), inset 1px 1px var(--bevel-soft), inset -2px -2px var(--bevel-shadow), inset 2px 2px var(--bevel-light);
   --group-border: 1px solid var(--bevel-shadow); --group-shadow: 1px 1px var(--bevel-light);
-  --title-padding: 2px 4px; --title-border: 0; --title-radius: 0; --title-size: 13px;
+  --title-padding: 2px 4px; --title-border: 0; --title-radius: 0; --title-size: 12px;
   --tab-padding: 3px 10px; --tab-radius: 0; --tab-shadow: var(--control-shadow);
   --shell-radius: 0; --shell-shadow: none; --dialog-shadow: 8px 8px 0 #0005;
-  --app-title-padding: 2px 4px; --app-title-radius: 0; --brand-size: 13px;
+  --app-title-padding: 2px 4px; --app-title-radius: 0; --brand-size: 12px;
   --backdrop-filter: none; --error-decoration: underline;
 }
 
