@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { Eye, EyeOff, Moon, Sun } from "lucide-react";
 
 const COLOR_MODE_KEY = "aws-control-center.color-mode";
@@ -37,6 +37,17 @@ export function AppearanceControls() {
     const mode = storedColorMode();
     if (mode) applyColorMode(mode);
     applyPrivacy(localStorage.getItem(ACCOUNT_DETAILS_KEY) === "hidden");
+  }, []);
+
+  // The split screen runs this app in an iframe. Storage events reach the other pane when one toggles.
+  useEffect(() => {
+    const sync = () => {
+      const mode = storedColorMode();
+      if (mode) applyColorMode(mode);
+      applyPrivacy(localStorage.getItem(ACCOUNT_DETAILS_KEY) === "hidden");
+    };
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
   }, []);
 
   function togglePrivacy() {

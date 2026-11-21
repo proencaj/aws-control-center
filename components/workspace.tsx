@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Cloud, Shield, Terminal, X } from "lucide-react";
+import { Cloud, Columns2, Shield, Square, Terminal, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { setAccount, setRegion } from "@/app/actions";
 import { AccountSelect } from "@/components/account-select";
@@ -18,16 +18,38 @@ type Workspace = {
   lastActive: number;
 };
 
+type Pane = "left" | "right";
+type PaneState = { service: string; region: string };
+
 type WorkspaceContextValue = {
   activeId: string;
   activeRegion: string;
+  activeService: string;
   isActive: (id?: string) => boolean;
-  openService: (href: string, forceNew?: boolean) => void;
+  openService: (href: string) => void;
   workspaceId: string;
 };
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 const STORAGE_KEY = "aws-control-center.workspaces.v1";
+// The right pane is this same app inside an iframe, with its own tabs under its own key.
+const RIGHT_STORAGE_KEY = `${STORAGE_KEY}.right`;
+
+const isEmbedded = () => window.top !== window.self;
+const storageKey = () => (isEmbedded() ? RIGHT_STORAGE_KEY : STORAGE_KEY);
+
+function post(target: Window | null | undefined, message: Record<string, unknown>) {
+  target?.postMessage(message, window.location.origin);
+}
+
+// Both panes share one region cookie, so the focused pane writes its region before server actions run.
+async function syncRegionCookie(region: string, fallback: string) {
+  const current = document.cookie.match(/(?:^|; )region=([^;]*)/)?.[1] ?? fallback;
+  if (current === region) return;
+  const data = new FormData();
+  data.set("region", region);
+  await setRegion(data);
+}
 
 function id() {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
@@ -118,7 +140,13 @@ export function WorkspaceShell({
   const [activeId, setActiveId] = useState(initialId);
   const [ready, setReady] = useState(false);
   const [cached, setCached] = useState<Record<string, React.ReactNode>>({});
-  const cookieRegion = useRef(initialRegion);
+  const [split, setSplit] = useState(false);
+  const [focused, setFocused] = useState<Pane>("left");
+  const [rightSrc, setRightSrc] = useState("/");
+  const [rightKey, setRightKey] = useState(0);
+  const [rightState, setRightState] = useState<PaneState>({ service: "directory", region: initialRegion });
+  const rightFrame = useRef<HTMLIFrameElement>(null);
+  const commands = useRef<{ openService: (href: string) => void; changeRegion: (region: string) => Promise<void> } | null>(null);
   const activationOrder = useRef(1);
   const hydrated = useRef(false);
   const pendingActivation = useRef<string | null>(null);
@@ -127,11 +155,16 @@ export function WorkspaceShell({
   useEffect(() => {
     if (hydrated.current) return;
     hydrated.current = true;
-    let restored: { tabs: Workspace[]; activeId: string } | undefined;
+    let restored: { tabs: Workspace[]; activeId: string; split?: boolean } | undefined;
+    let rightHref = "/";
     try {
-      const raw = sessionStorage.getItem(STORAGE_KEY);
+      const raw = sessionStorage.getItem(storageKey());
       const parsed: unknown = raw ? JSON.parse(raw) : undefined;
       if (validStored(parsed)) restored = parsed;
+      const right: unknown = JSON.parse(sessionStorage.getItem(RIGHT_STORAGE_KEY) ?? "null");
+      if (!isEmbedded() && restored?.split && validStored(right)) {
+        rightHref = (right.tabs.find((tab) => tab.id === right.activeId) ?? right.tabs[0])?.href ?? "/";
+      }
     } catch {}
 
     const urlId = new URL(window.location.href).searchParams.get("tab");
@@ -144,6 +177,8 @@ export function WorkspaceShell({
       activationOrder.current = Math.max(1, ...restoredTabs.map((tab) => tab.lastActive));
       // Storage hydration must happen after the server-rendered shell mounts.
       setTabs(restoredTabs);
+      setSplit(!isEmbedded() && restored.split === true);
+      setRightSrc(rightHref);
       setActiveId(restoredTabs.some((tab) => tab.id === selected) ? selected : restoredTabs[0].id);
     } else if (!urlId) {
       const nextId = id();
@@ -157,8 +192,8 @@ export function WorkspaceShell({
 
   useEffect(() => {
     if (!ready) return;
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ tabs, activeId }));
-  }, [activeId, ready, tabs]);
+    sessionStorage.setItem(storageKey(), JSON.stringify({ tabs, activeId, split }));
+  }, [activeId, ready, split, tabs]);
 
   useEffect(() => {
     if (!ready) return;
@@ -199,12 +234,7 @@ export function WorkspaceShell({
   }, [cached, children, ready, routeHref, routeTabId, tabs]);
 
   async function activate(tab: Workspace) {
-    if (cookieRegion.current !== tab.region) {
-      const data = new FormData();
-      data.set("region", tab.region);
-      await setRegion(data);
-      cookieRegion.current = tab.region;
-    }
+    await syncRegionCookie(tab.region, initialRegion);
     pendingActivation.current = tab.id;
     setActiveId(tab.id);
     const order = ++activationOrder.current;
@@ -212,9 +242,10 @@ export function WorkspaceShell({
     router.push(tab.href, { scroll: false });
   }
 
-  function openService(href: string, forceNew = false) {
+  // One tab per service in each pane. Split the screen to see a service twice.
+  function openService(href: string) {
     const service = serviceFor(new URL(href, window.location.origin).pathname);
-    const existing = !forceNew ? [...tabs].filter((tab) => tab.service === service).sort((a, b) => b.lastActive - a.lastActive)[0] : undefined;
+    const existing = [...tabs].filter((tab) => tab.service === service).sort((a, b) => b.lastActive - a.lastActive)[0];
     if (existing) {
       void activate(existing);
       return;
@@ -260,6 +291,10 @@ export function WorkspaceShell({
     const next: Workspace = { ...active, href: workspaceHref("/", active.id, active.region), service: "directory", title: "Directory", lastActive: ++activationOrder.current };
     setCached({});
     setTabs([next]);
+    sessionStorage.removeItem(RIGHT_STORAGE_KEY);
+    setRightSrc("/");
+    setRightKey((key) => key + 1);
+    setFocused("left");
     router.push(next.href, { scroll: false });
   }
 
@@ -275,7 +310,6 @@ export function WorkspaceShell({
     const data = new FormData();
     data.set("region", region);
     await setRegion(data);
-    cookieRegion.current = region;
     router.push(href, { scroll: false });
   }
 
@@ -286,19 +320,27 @@ export function WorkspaceShell({
       const anchor = (event.target as Element).closest("a");
       if (!anchor || anchor.target || anchor.download || anchor.origin !== window.location.origin) return;
       event.preventDefault();
-      const href = workspaceHref(anchor.href, active.id, active.region);
+      const service = serviceFor(anchor.pathname);
+      // Linking to a service this pane already has reuses that tab instead of duplicating it.
+      const other = service !== active.service ? tabs.find((tab) => tab.service === service) : undefined;
+      const target = other ?? active;
+      const href = workspaceHref(anchor.href, target.id, active.region);
       setCached((current) => {
         const next = { ...current };
-        delete next[active.id];
+        delete next[target.id];
         return next;
       });
       const order = ++activationOrder.current;
-      setTabs((current) => current.map((tab) => tab.id === active.id ? { ...tab, href, service: serviceFor(anchor.pathname), title: titleFor(anchor.pathname), lastActive: order } : tab));
+      setTabs((current) => current.map((tab) => tab.id === target.id ? { ...tab, href, service, title: titleFor(anchor.pathname), region: active.region, lastActive: order } : tab));
+      if (other) {
+        pendingActivation.current = other.id;
+        setActiveId(other.id);
+      }
       router.push(href);
     };
     document.addEventListener("click", onClick, true);
     return () => document.removeEventListener("click", onClick, true);
-  }, [active, ready, router]);
+  }, [active, ready, router, tabs]);
 
   useEffect(() => {
     const syncUrl = () => {
@@ -308,6 +350,70 @@ export function WorkspaceShell({
     window.addEventListener("workspace-url-change", syncUrl);
     return () => window.removeEventListener("workspace-url-change", syncUrl);
   }, [activeId]);
+
+  useEffect(() => {
+    commands.current = { openService, changeRegion };
+  });
+
+  // Right pane (iframe): tell the parent which pane is focused and what it shows, and run its commands.
+  useEffect(() => {
+    if (!ready || !isEmbedded()) return;
+    post(window.parent, { type: "pane-state", service: active.service, region: active.region });
+    const focus = () => {
+      post(window.parent, { type: "pane-focus" });
+      void syncRegionCookie(active.region, initialRegion);
+    };
+    const onMessage = (event: MessageEvent) => {
+      if (event.source !== window.parent || event.origin !== window.location.origin) return;
+      const message = event.data as { type?: string; href?: string; region?: string };
+      if (message.type === "open-service" && typeof message.href === "string") commands.current?.openService(message.href);
+      if (message.type === "change-region" && typeof message.region === "string") void commands.current?.changeRegion(message.region);
+    };
+    document.addEventListener("pointerdown", focus, true);
+    document.addEventListener("focusin", focus, true);
+    window.addEventListener("message", onMessage);
+    return () => {
+      document.removeEventListener("pointerdown", focus, true);
+      document.removeEventListener("focusin", focus, true);
+      window.removeEventListener("message", onMessage);
+    };
+  }, [active.region, active.service, initialRegion, ready]);
+
+  // Parent: track the right pane's focus and state.
+  useEffect(() => {
+    if (!split) return;
+    const onMessage = (event: MessageEvent) => {
+      if (event.source !== rightFrame.current?.contentWindow || event.origin !== window.location.origin) return;
+      const message = event.data as { type?: string; service?: string; region?: string };
+      if (message.type === "pane-focus") setFocused("right");
+      if (message.type === "pane-state" && typeof message.service === "string" && typeof message.region === "string") setRightState({ service: message.service, region: message.region });
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [split, rightKey]);
+
+  function focusLeft() {
+    if (focused === "left") return;
+    setFocused("left");
+    void syncRegionCookie(active.region, initialRegion);
+  }
+
+  function toggleSplit() {
+    if (split) {
+      sessionStorage.removeItem(RIGHT_STORAGE_KEY);
+      setSplit(false);
+      focusLeft();
+      return;
+    }
+    sessionStorage.removeItem(RIGHT_STORAGE_KEY);
+    setRightSrc("/");
+    setRightKey((key) => key + 1);
+    setRightState({ service: "directory", region: active.region });
+    setSplit(true);
+  }
+
+  const rightFocused = split && focused === "right";
+  const toolbarRegion = rightFocused ? rightState.region : active.region;
 
   function tabKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
     const target = (event.target as Element).closest<HTMLElement>("[role=tab]");
@@ -330,11 +436,17 @@ export function WorkspaceShell({
 
   const accountName = accounts.find((account) => account.id === currentAccountId)?.name;
 
+  // Sidebar and region changes go to whichever pane was focused last.
+  const rightWindow = () => rightFrame.current?.contentWindow;
+  const routedOpenService = (href: string) => (rightFocused ? post(rightWindow(), { type: "open-service", href }) : openService(href));
+  const routedChangeRegion = (region: string) => (rightFocused ? post(rightWindow(), { type: "change-region", region }) : void changeRegion(region));
+
   const context: WorkspaceContextValue = {
     activeId,
     activeRegion: active.region,
+    activeService: rightFocused ? rightState.service : active.service,
     isActive: (workspaceId = activeId) => workspaceId === activeId,
-    openService,
+    openService: routedOpenService,
     workspaceId: routeTabId ?? activeId,
   };
 
@@ -355,6 +467,16 @@ export function WorkspaceShell({
                 <span className="private-value">{accountName ?? "Personal workspace"}</span>
                 <span className="private-mask">****</span>
               </span>
+              <button
+                type="button"
+                className="title-icon-button btn-icon"
+                aria-label={split ? "Single screen" : "Split screen"}
+                aria-pressed={split}
+                title={split ? "Single screen" : "Split screen"}
+                onClick={toggleSplit}
+              >
+                {split ? <Square size={16} aria-hidden /> : <Columns2 size={16} aria-hidden />}
+              </button>
               <AppearanceControls />
             </div>
           </div>
@@ -366,33 +488,47 @@ export function WorkspaceShell({
                 <div className="flex flex-wrap items-center gap-3">
                   {identity && <span className="text-sm">Identity <strong className="private-value" title={identity}>{identity.length > 20 ? `${identity.slice(0, 17)}...` : identity}</strong><strong className="private-mask">****</strong></span>}
                   {currentAccountId && <AccountSelect accounts={accounts} current={currentAccountId} onChange={changeAccount} />}
-                  <RegionSelect regions={regions} current={active.region} onChange={changeRegion} />
+                  <RegionSelect key={toolbarRegion} regions={regions} current={toolbarRegion} onChange={routedChangeRegion} />
                 </div>
               </header>
-          <div role="tablist" aria-label="Open workspaces" onKeyDown={tabKeyDown} className="workspace-tabs flex max-w-full gap-1 overflow-x-auto p-2 md:sticky md:top-0 md:z-10">
-            {tabs.map((tab) => (
-              <div key={tab.id} className="sheet-tab flex shrink-0 items-center" role="presentation" data-selected={tab.id === activeId}>
-                <button role="tab" data-workspace={tab.id} tabIndex={tab.id === activeId ? 0 : -1} aria-selected={tab.id === activeId} onClick={() => void activate(tab)} className="plain max-w-56 truncate bg-transparent px-1 text-sm shadow-none">
-                  {tab.title}
-                </button>
-                <button aria-label={`Close ${tab.title}`} onClick={() => void close(tab.id)} className="plain bg-transparent px-1 shadow-none"><X size={12} /></button>
+              <div className="flex min-w-0 flex-1 flex-col md:flex-row">
+                <div
+                  className={`flex min-w-0 flex-1 basis-0 flex-col ${split ? "pane" : ""}`}
+                  data-focused={split && focused === "left"}
+                  onPointerDownCapture={split ? focusLeft : undefined}
+                  onFocusCapture={split ? focusLeft : undefined}
+                >
+                <div role="tablist" aria-label="Open workspaces" onKeyDown={tabKeyDown} className="workspace-tabs flex max-w-full gap-1 overflow-x-auto p-2 md:sticky md:top-0 md:z-10">
+                  {tabs.map((tab) => (
+                    <div key={tab.id} className="sheet-tab flex shrink-0 items-center" role="presentation" data-selected={tab.id === activeId}>
+                      <button role="tab" data-workspace={tab.id} tabIndex={tab.id === activeId ? 0 : -1} aria-selected={tab.id === activeId} onClick={() => void activate(tab)} className="plain max-w-56 truncate bg-transparent px-1 text-sm shadow-none">
+                        {tab.title}
+                      </button>
+                      <button aria-label={`Close ${tab.title}`} onClick={() => void close(tab.id)} className="plain bg-transparent px-1 shadow-none"><X size={12} /></button>
+                    </div>
+                  ))}
+                </div>
+                <main className="workspace-content relative z-0 min-w-0 flex-1 px-4 py-6 lg:px-8 lg:py-8">
+                  {tabs.map((tab) => {
+                    const routeOwnsTab = routeTabId === tab.id;
+                    const content = routeOwnsTab && (tab.href !== routeHref || !cached[tab.id]) ? children : cached[tab.id];
+                    return (
+                      <WorkspaceContext.Provider key={tab.id} value={{ ...context, workspaceId: tab.id }}>
+                        <section hidden={tab.id !== activeId} aria-hidden={tab.id !== activeId}>
+                          <div className="mx-auto max-w-6xl">{content}</div>
+                        </section>
+                      </WorkspaceContext.Provider>
+                    );
+                  })}
+                </main>
+                </div>
+                {split && (
+                  <div className="pane h-[80dvh] min-w-0 flex-1 basis-0 md:sticky md:top-0 md:h-dvh md:self-start" data-focused={focused === "right"}>
+                    <iframe key={rightKey} ref={rightFrame} src={rightSrc} title="Right pane" className="h-full w-full border-0" />
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
-          <main className="workspace-content relative z-0 min-w-0 flex-1 px-4 py-6 lg:px-8 lg:py-8">
-            {tabs.map((tab) => {
-              const routeOwnsTab = routeTabId === tab.id;
-              const content = routeOwnsTab && (tab.href !== routeHref || !cached[tab.id]) ? children : cached[tab.id];
-              return (
-                <WorkspaceContext.Provider key={tab.id} value={{ ...context, workspaceId: tab.id }}>
-                  <section hidden={tab.id !== activeId} aria-hidden={tab.id !== activeId}>
-                    <div className="mx-auto max-w-6xl">{content}</div>
-                  </section>
-                </WorkspaceContext.Provider>
-              );
-            })}
-          </main>
-              <footer className="flex gap-1 p-1 text-xs"><span className="status-field flex-1">Local console</span><span className="status-field hidden sm:block">EC2 / ECS / Logs / S3</span></footer>
+              <footer className="app-footer flex gap-1 p-1 text-xs"><span className="status-field flex-1">Local console</span><span className="status-field hidden sm:block">EC2 / ECS / Logs / S3</span></footer>
             </div>
           </div>
         </div>

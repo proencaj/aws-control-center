@@ -88,6 +88,7 @@ components/
 
 - **Reads:** Server Component calls a function in `lib/<service>.ts`, renders the result. Use `searchParams` for region, pagination tokens and filters, so URLs are shareable and refresh-safe.
 - **Writes:** Form submits to a Server Action in `app/<service>/actions.ts`. The action validates input with zod, calls `lib/<service>.ts`, then `revalidatePath`. Return `{ error }` on failure, do not throw to the client.
+- **Split screen:** the top bar toggle splits the workspace into two panes. The right pane is this same app in a same-origin iframe, so it has its own router, URL and tabs (`aws-control-center.workspaces.v1.right` in sessionStorage). Each pane holds at most one tab per service. The shell, sidebar and region select are shared and act on the last focused pane through `postMessage`. Unsplitting keeps the left pane.
 - **Region:** selected in the top bar, stored in a cookie, read on the server when creating clients. Global services (IAM, S3 bucket listing) ignore it.
 - **Pagination:** use the SDK paginators (`paginateListObjectsV2`, etc.) or pass `NextToken`/`ContinuationToken` through the URL. Never load an unbounded list into memory.
 

@@ -7,14 +7,12 @@ import {
   Container,
   ScrollText,
   HardDrive,
-  Plus,
   Package,
   Bot,
   Zap,
   Bell,
   MessageSquare,
 } from "lucide-react";
-import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useWorkspace } from "@/components/workspace";
 
@@ -34,9 +32,8 @@ const items = [
 ];
 
 export function Sidebar() {
-  const pathname = usePathname();
   const [query, setQuery] = useState("");
-  const { openService } = useWorkspace();
+  const { activeService, openService } = useWorkspace();
   const visible = items.filter((item) =>
     item.label.toLowerCase().includes(query.trim().toLowerCase()),
   );
@@ -63,24 +60,12 @@ export function Sidebar() {
         {visible.map(({ label, href, icon: Icon }) => (
           <div key={href} className="sidebar-item flex items-center">
             <button
-              aria-current={
-                pathname === href || (href !== "/" && pathname.startsWith(href))
-                  ? "page"
-                  : undefined
-              }
+              aria-current={(href.split("/")[1] || "directory") === activeService ? "page" : undefined}
               onClick={() => openService(href)}
               className="plain flex flex-1 items-center gap-2.5 bg-transparent px-2 py-2 text-left shadow-none"
             >
               <Icon size={16} />
               {label}
-            </button>
-            <button
-              aria-label={`Open another ${label} tab`}
-              title="Open in new tab"
-              onClick={() => openService(href, true)}
-              className="btn-icon m-px p-0.5"
-            >
-              <Plus size={12} />
             </button>
           </div>
         ))}

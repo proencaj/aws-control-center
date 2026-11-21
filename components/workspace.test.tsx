@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { WorkspaceShell } from "./workspace";
 
@@ -47,16 +47,54 @@ it("restores workspaces and switches the account region before navigation", asyn
   await waitFor(() => expect(navigation.push).toHaveBeenCalledWith("/ec2?tab=ec2&region=us-west-2", { scroll: false }));
 });
 
-it("opens another workspace for the same service and closes it", async () => {
+it("reuses the open tab for a service instead of duplicating it", async () => {
   render(<WorkspaceShell initialRegion="us-east-1" regions={["us-east-1"]} accounts={[]}><p>Directory content</p></WorkspaceShell>);
 
-  const open = await screen.findByRole("button", { name: "Open another EC2 tab" });
-  fireEvent.click(open);
-  await waitFor(() => expect(screen.getAllByRole("tab", { name: "EC2" })).toHaveLength(2));
+  expect(screen.queryByRole("button", { name: /Open another/ })).toBeNull();
+  await screen.findByRole("tab", { name: "EC2" });
+  fireEvent.click(screen.getByRole("button", { name: "EC2" }));
+  await waitFor(() => expect(navigation.push).toHaveBeenCalledWith("/ec2?tab=ec2&region=us-west-2", { scroll: false }));
+  expect(screen.getAllByRole("tab", { name: "EC2" })).toHaveLength(1);
 
-  const closeButtons = screen.getAllByRole("button", { name: "Close EC2" });
-  fireEvent.click(closeButtons.at(-1)!);
-  await waitFor(() => expect(screen.getAllByRole("tab", { name: "EC2" })).toHaveLength(1));
+  fireEvent.click(screen.getByRole("button", { name: "Close EC2" }));
+  await waitFor(() => expect(screen.queryByRole("tab", { name: "EC2" })).toBeNull());
+});
+
+it("splits into an iframe pane and unsplits keeping the left tabs", async () => {
+  render(<WorkspaceShell initialRegion="us-east-1" regions={["us-east-1"]} accounts={[]}><p>Directory content</p></WorkspaceShell>);
+
+  fireEvent.click(await screen.findByRole("button", { name: "Split screen" }));
+  const frame = await screen.findByTitle("Right pane");
+  expect(frame.getAttribute("src")).toBe("/");
+
+  fireEvent.click(screen.getByRole("button", { name: "Single screen" }));
+  await waitFor(() => expect(screen.queryByTitle("Right pane")).toBeNull());
+  expect(sessionStorage.getItem("aws-control-center.workspaces.v1.right")).toBeNull();
+  expect(screen.getByRole("tab", { name: "EC2" })).toBeTruthy();
+});
+
+it("sends sidebar clicks and region changes to the focused right pane", async () => {
+  render(<WorkspaceShell initialRegion="us-east-1" regions={["us-east-1", "eu-west-1"]} accounts={[]}><p>Directory content</p></WorkspaceShell>);
+
+  fireEvent.click(await screen.findByRole("button", { name: "Split screen" }));
+  const frame = (await screen.findByTitle("Right pane")) as HTMLIFrameElement;
+  const postMessage = vi.spyOn(frame.contentWindow!, "postMessage");
+  const fromRight = (data: unknown) => act(() => {
+    window.dispatchEvent(new MessageEvent("message", { data, origin: window.location.origin, source: frame.contentWindow }));
+  });
+
+  fromRight({ type: "pane-focus" });
+  fromRight({ type: "pane-state", service: "s3", region: "eu-west-1" });
+  expect((screen.getByLabelText("Region") as HTMLSelectElement).value).toBe("eu-west-1");
+
+  fireEvent.click(screen.getByRole("button", { name: "S3" }));
+  expect(postMessage).toHaveBeenCalledWith({ type: "open-service", href: "/s3" }, window.location.origin);
+  expect(navigation.push).not.toHaveBeenCalled();
+  expect(screen.getByRole("button", { name: "S3" }).getAttribute("aria-current")).toBe("page");
+
+  // Messages from other windows are ignored.
+  window.dispatchEvent(new MessageEvent("message", { data: { type: "pane-state", service: "ec2", region: "us-east-1" }, origin: window.location.origin, source: window }));
+  expect((screen.getByLabelText("Region") as HTMLSelectElement).value).toBe("eu-west-1");
 });
 
 it("uses Lambda title casing for restored service and resource tabs", async () => {
@@ -72,4 +110,27 @@ it("uses Lambda title casing for restored service and resource tabs", async () =
 
   expect(await screen.findByRole("tab", { name: "Lambda" })).toBeTruthy();
   expect(screen.getByRole("tab", { name: "Lambda · MyFunction" })).toBeTruthy();
+});
+
+it("runs as the right pane inside an iframe: own storage, reports state, handles parent commands", async () => {
+  const parent = { postMessage: vi.fn() };
+  const originalTop = Object.getOwnPropertyDescriptor(window, "top")!;
+  const originalParent = Object.getOwnPropertyDescriptor(window, "parent")!;
+  Object.defineProperty(window, "top", { value: {}, configurable: true });
+  Object.defineProperty(window, "parent", { value: parent, configurable: true });
+  try {
+    sessionStorage.setItem("aws-control-center.workspaces.v1.right", JSON.stringify(stored));
+    render(<WorkspaceShell initialRegion="us-east-1" regions={["us-east-1"]} accounts={[]}><p>Directory content</p></WorkspaceShell>);
+
+    await waitFor(() => expect(parent.postMessage).toHaveBeenCalledWith({ type: "pane-state", service: "directory", region: "us-east-1" }, window.location.origin));
+    act(() => {
+      window.dispatchEvent(new MessageEvent("message", { data: { type: "open-service", href: "/ec2" }, origin: window.location.origin, source: parent as unknown as Window }));
+    });
+    await waitFor(() => expect(navigation.push).toHaveBeenCalledWith("/ec2?tab=ec2&region=us-west-2", { scroll: false }));
+    fireEvent.pointerDown(document.body);
+    expect(parent.postMessage).toHaveBeenCalledWith({ type: "pane-focus" }, window.location.origin);
+  } finally {
+    Object.defineProperty(window, "top", originalTop);
+    Object.defineProperty(window, "parent", originalParent);
+  }
 });
