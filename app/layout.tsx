@@ -50,7 +50,7 @@ export default async function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var r=document.documentElement,m=localStorage.getItem("aws-control-center.color-mode"),p=localStorage.getItem("aws-control-center.account-details");if(m==="light"||m==="dark")r.dataset.colorMode=m;if(p==="hidden")r.dataset.accountDetails="hidden"}catch(e){}})()`,
+            __html: `(function(){try{var r=document.documentElement,m=localStorage.getItem("aws-control-center.color-mode"),p=localStorage.getItem("aws-control-center.account-details");if(m==="light"||m==="dark")r.dataset.colorMode=m;if(p==="hidden")r.dataset.accountDetails="hidden";if(window.top!==window.self)r.dataset.pane="embedded"}catch(e){}})()`,
           }}
         />
       </head>
