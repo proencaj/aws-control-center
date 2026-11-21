@@ -21,7 +21,7 @@ After pulling dependency changes, use `docker compose up --build -V` to refresh 
 Set `APP_THEME` in `.env.local` to select the complete visual theme:
 
 ```dotenv
-APP_THEME=default # default, apple, win95, or wow
+APP_THEME=default # default, apple, win95, win7, or wow
 ```
 
 The value controls typography, colors, surfaces, controls, favicon, and cursor. Missing, empty, or unsupported values use `default`. After changing it, recreate the app container so Docker Compose reloads the environment file:
@@ -30,7 +30,7 @@ The value controls typography, colors, surfaces, controls, favicon, and cursor. 
 docker compose up -d --force-recreate app
 ```
 
-Themes use locally installed fonts when available and fall back to matching system stacks. The default theme prefers VT323 and Berkeley Mono, Windows 95 prefers MS Sans Serif and Cousine, WoW prefers Cinzel and Crimson Text, and Apple uses the system Apple font stack. No font files are bundled or required.
+Themes use locally installed fonts when available and fall back to matching system stacks. The default theme prefers VT323 and Berkeley Mono, Windows 95 prefers MS Sans Serif and Cousine, Windows 7 prefers Segoe UI and Consolas, WoW prefers Cinzel and Crimson Text, and Apple uses the system Apple font stack. No font files are bundled or required.
 
 ## ECS console
 

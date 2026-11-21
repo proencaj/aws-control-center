@@ -1,6 +1,6 @@
 import "server-only";
 
-export const THEMES = ["default", "apple", "win95", "wow"] as const;
+export const THEMES = ["default", "apple", "win95", "win7", "wow"] as const;
 
 export type AppTheme = (typeof THEMES)[number];
 

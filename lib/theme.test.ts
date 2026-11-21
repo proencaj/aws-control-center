@@ -7,7 +7,7 @@ afterEach(() => {
 });
 
 describe("theme configuration", () => {
-  it.each(["default", "apple", "win95", "wow"] as const)(
+  it.each(["default", "apple", "win95", "win7", "wow"] as const)(
     "accepts %s",
     (theme) => expect(resolveTheme(theme)).toBe(theme),
   );
@@ -23,6 +23,7 @@ describe("theme configuration", () => {
 
   it("returns the selected theme icon", () => {
     expect(themeIcon("win95")).toBe("/themes/win95/icon.svg");
+    expect(themeIcon("win7")).toBe("/themes/win7/icon.svg");
   });
 
   it("warns and uses default for an unsupported environment value", () => {

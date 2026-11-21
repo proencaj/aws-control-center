@@ -209,7 +209,8 @@
   }
   .brand-icon { display: none; }
   html[data-theme="default"] .brand-default, html[data-theme="apple"] .brand-apple,
-  html[data-theme="win95"] .brand-win95, html[data-theme="wow"] .brand-wow { display: inline-flex; }
+  html[data-theme="win95"] .brand-win95, html[data-theme="win7"] .brand-win7,
+  html[data-theme="wow"] .brand-wow { display: inline-flex; }
   .app-sidebar { background: var(--sidebar); border-right: 1px solid var(--border); }
   .sidebar-search { background: var(--field); border: var(--field-border); border-radius: var(--control-radius); }
   .sidebar-search input { min-width: 0; border: 0; background: transparent; box-shadow: none; }

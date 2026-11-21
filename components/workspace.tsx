@@ -459,6 +459,7 @@ export function WorkspaceShell({
               <span className="brand-icon brand-default" aria-hidden><Terminal size={20} /></span>
               <span className="brand-icon brand-apple" aria-hidden><Cloud size={20} /></span>
               <span className="brand-icon brand-win95" aria-hidden>▣</span>
+              <span className="brand-icon brand-win7 brand-aero" aria-hidden><span /></span>
               <span className="brand-icon brand-wow brand-emblem" aria-hidden><Shield size={22} /></span>
               AWS Control Center
             </span>
