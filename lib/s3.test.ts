@@ -2,10 +2,12 @@ import {
   CopyObjectCommand,
   DeleteObjectCommand,
   GetObjectAclCommand,
+  GetObjectCommand,
   HeadBucketCommand,
   HeadObjectCommand,
   ListBucketsCommand,
   ListObjectsV2Command,
+  RestoreObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { mockClient } from "aws-sdk-client-mock";
@@ -14,27 +16,124 @@ import {
   bucketRegion,
   changeStorageClass,
   deleteObject,
+  presignedObjectUrl,
+  requestRestore,
   listBuckets,
   listObjects,
 } from "./s3";
 import { s3Client } from "./aws/clients";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => ({ value: "eu-west-1" }) }),
 }));
+vi.mock("@aws-sdk/s3-request-presigner", () => ({ getSignedUrl: vi.fn() }));
 const mock = mockClient(S3Client);
 const bucket = "test-bucket";
 const region = "ap-southeast-2";
 beforeEach(() => {
+  vi.clearAllMocks();
   mock.reset();
-  mock
-    .on(HeadObjectCommand)
-    .resolves({
-      ETag: '"etag"',
-      ContentLength: 100,
-      ServerSideEncryption: "AES256",
-    });
+  mock.on(HeadObjectCommand).resolves({
+    ETag: '"etag"',
+    ContentLength: 100,
+    ServerSideEncryption: "AES256",
+  });
   mock.on(CopyObjectCommand).resolves({});
+  mock.on(RestoreObjectCommand).resolves({});
+  vi.mocked(getSignedUrl).mockResolvedValue("https://signed.example/object");
+});
+
+it("requests version-pinned Glacier and Intelligent-Tiering restores", async () => {
+  mock.on(HeadObjectCommand).resolves({
+    ETag: '"etag"',
+    VersionId: "version-1",
+    StorageClass: "GLACIER",
+  });
+  expect(
+    await requestRestore(
+      bucket,
+      region,
+      { key: "archive", etag: '"etag"' },
+      "Standard",
+      7,
+    ),
+  ).toBe("requested");
+  expect(mock.commandCalls(RestoreObjectCommand)[0].args[0].input).toEqual({
+    Bucket: bucket,
+    Key: "archive",
+    VersionId: "version-1",
+    RestoreRequest: {
+      Days: 7,
+      GlacierJobParameters: { Tier: "Standard" },
+    },
+  });
+
+  mock.on(HeadObjectCommand).resolves({
+    ETag: '"etag"',
+    StorageClass: "INTELLIGENT_TIERING",
+    ArchiveStatus: "ARCHIVE_ACCESS",
+  });
+  await requestRestore(
+    bucket,
+    region,
+    { key: "tiered", etag: '"etag"' },
+    "Bulk",
+    7,
+  );
+  expect(mock.commandCalls(RestoreObjectCommand)[1].args[0].input).toEqual({
+    Bucket: bucket,
+    Key: "tiered",
+    VersionId: undefined,
+    RestoreRequest: { Tier: "Bulk" },
+  });
+});
+
+it("rejects expedited Deep Archive restores before writing", async () => {
+  mock.on(HeadObjectCommand).resolves({
+    ETag: '"etag"',
+    StorageClass: "DEEP_ARCHIVE",
+  });
+  await expect(
+    requestRestore(
+      bucket,
+      region,
+      { key: "deep", etag: '"etag"' },
+      "Expedited",
+      7,
+    ),
+  ).rejects.toThrow("Expedited");
+  expect(mock.commandCalls(RestoreObjectCommand)).toHaveLength(0);
+});
+
+it("signs an ETag- and version-pinned object URL with safe disposition", async () => {
+  mock.on(HeadObjectCommand).resolves({
+    ETag: '"etag"',
+    VersionId: "version-1",
+    ContentType: "text/plain",
+  });
+  expect(
+    await presignedObjectUrl(
+      bucket,
+      region,
+      "folder/雪's report.txt",
+      '"etag"',
+      3600,
+      "attachment",
+    ),
+  ).toBe("https://signed.example/object");
+  const command = vi.mocked(getSignedUrl).mock.calls[0][1];
+  expect(command).toBeInstanceOf(GetObjectCommand);
+  expect((command as GetObjectCommand).input).toMatchObject({
+    Bucket: bucket,
+    Key: "folder/雪's report.txt",
+    VersionId: "version-1",
+    IfMatch: '"etag"',
+  });
+  expect(
+    (command as GetObjectCommand).input.ResponseContentDisposition,
+  ).toContain("filename*=UTF-8''%E9%9B%AA%27s%20report.txt");
+  expect(vi.mocked(getSignedUrl).mock.calls[0][2]).toEqual({ expiresIn: 3600 });
 });
 
 it("lists a bounded global bucket page without applying a region filter", async () => {
@@ -63,18 +162,16 @@ it("resolves bucket location independently of the UI region", async () => {
 });
 
 it("preserves encoded object keys, folder prefixes, and pagination", async () => {
-  mock
-    .on(ListObjectsV2Command)
-    .resolves({
-      EncodingType: "url",
-      IsTruncated: true,
-      NextContinuationToken: "opaque%token",
-      CommonPrefixes: [{ Prefix: "photos%2Fa%20b%2F" }],
-      Contents: [
-        { Key: "photos%2F" },
-        { Key: "photos%2Fa%2B%25%26%3F%E9%9B%AA.txt", Size: 5 },
-      ],
-    });
+  mock.on(ListObjectsV2Command).resolves({
+    EncodingType: "url",
+    IsTruncated: true,
+    NextContinuationToken: "opaque%token",
+    CommonPrefixes: [{ Prefix: "photos%2Fa%20b%2F" }],
+    Contents: [
+      { Key: "photos%2F" },
+      { Key: "photos%2Fa%2B%25%26%3F%E9%9B%AA.txt", Size: 5 },
+    ],
+  });
   const result = await listObjects(bucket, region, "photos/", "previous");
   expect(result.folders).toEqual(["photos/a b/"]);
   expect(result.objects[0].Key).toBe("photos/a+%&?雪.txt");
@@ -87,6 +184,7 @@ it("preserves encoded object keys, folder prefixes, and pagination", async () =>
     EncodingType: "url",
     MaxKeys: 100,
     ContinuationToken: "previous",
+    OptionalObjectAttributes: ["RestoreStatus"],
   });
 });
 
@@ -101,17 +199,15 @@ it("deletes only the exact key and ETag without purging versions or bypassing lo
 });
 
 it("copies to the same key with metadata, tags, encryption, and source/destination preconditions", async () => {
-  mock
-    .on(HeadObjectCommand)
-    .resolves({
-      ETag: '"etag"',
-      ContentLength: 100,
-      VersionId: "version+/?",
-      ServerSideEncryption: "aws:kms",
-      SSEKMSKeyId: "key-id",
-      BucketKeyEnabled: true,
-      WebsiteRedirectLocation: "/redirect",
-    });
+  mock.on(HeadObjectCommand).resolves({
+    ETag: '"etag"',
+    ContentLength: 100,
+    VersionId: "version+/?",
+    ServerSideEncryption: "aws:kms",
+    SSEKMSKeyId: "key-id",
+    BucketKeyEnabled: true,
+    WebsiteRedirectLocation: "/redirect",
+  });
   expect(
     await changeStorageClass(
       bucket,
@@ -214,15 +310,13 @@ it.each([
 );
 
 it("permits a restored archive and skips an already matching class", async () => {
-  mock
-    .on(HeadObjectCommand)
-    .resolves({
-      ETag: '"etag"',
-      ContentLength: 1,
-      StorageClass: "GLACIER",
-      Restore:
-        'ongoing-request="false", expiry-date="Fri, 20 Nov 2026 00:00:00 GMT"',
-    });
+  mock.on(HeadObjectCommand).resolves({
+    ETag: '"etag"',
+    ContentLength: 1,
+    StorageClass: "GLACIER",
+    Restore:
+      'ongoing-request="false", expiry-date="Fri, 20 Nov 2026 00:00:00 GMT"',
+  });
   await changeStorageClass(
     bucket,
     region,

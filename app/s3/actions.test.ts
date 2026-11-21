@@ -7,13 +7,16 @@ import {
   HeadBucketCommand,
   HeadObjectCommand,
   S3Client,
+  RestoreObjectCommand,
 } from "@aws-sdk/client-s3";
 import { mockClient } from "aws-sdk-client-mock";
 import { beforeEach, expect, it, vi } from "vitest";
 import { revalidatePath } from "next/cache";
 import { objectAction } from "./actions";
+import { getCallerIdentity } from "@/lib/sts";
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("@/lib/sts", () => ({ getCallerIdentity: vi.fn() }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => undefined }),
 }));
@@ -21,6 +24,7 @@ const mock = mockClient(S3Client);
 const selection = [{ key: "folder/a.txt", etag: '"a"' }];
 const payload = {
   bucket: "test-bucket",
+  account: "123456789012",
   operation: "delete",
   objects: selection,
 };
@@ -33,23 +37,25 @@ function form(input: object = payload, fields: Record<string, string> = {}) {
 beforeEach(() => {
   vi.clearAllMocks();
   mock.reset();
+  vi.mocked(getCallerIdentity).mockResolvedValue({
+    account: "123456789012",
+    arn: "arn:aws:iam::123456789012:user/test",
+    region: "us-east-1",
+  });
   mock.on(HeadBucketCommand).resolves({ BucketRegion: "us-west-2" });
   mock.on(DeleteObjectCommand).resolves({});
   mock.on(HeadObjectCommand).resolves({ ETag: '"a"', ContentLength: 10 });
-  mock
-    .on(GetBucketOwnershipControlsCommand)
-    .resolves({
-      OwnershipControls: {
-        Rules: [{ ObjectOwnership: "BucketOwnerEnforced" }],
-      },
-    });
-  mock
-    .on(GetObjectLockConfigurationCommand)
-    .rejects({
-      name: "ObjectLockConfigurationNotFoundError",
-      message: "No configuration",
-    });
+  mock.on(GetBucketOwnershipControlsCommand).resolves({
+    OwnershipControls: {
+      Rules: [{ ObjectOwnership: "BucketOwnerEnforced" }],
+    },
+  });
+  mock.on(GetObjectLockConfigurationCommand).rejects({
+    name: "ObjectLockConfigurationNotFoundError",
+    message: "No configuration",
+  });
   mock.on(CopyObjectCommand).resolves({});
+  mock.on(RestoreObjectCommand).resolves({});
 });
 
 it("requires the exact object key before contacting AWS", async () => {
@@ -140,22 +146,18 @@ it("does not silently drop object locks or bypass unreadable configuration", asy
 });
 
 it("supports legacy buckets without ownership controls and preserves their ACL", async () => {
-  mock
-    .on(GetBucketOwnershipControlsCommand)
-    .rejects({
-      name: "OwnershipControlsNotFoundError",
-      message: "Legacy bucket",
-    });
-  mock
-    .on(GetObjectAclCommand)
-    .resolves({
-      Grants: [
-        {
-          Permission: "FULL_CONTROL",
-          Grantee: { Type: "CanonicalUser", ID: "owner" },
-        },
-      ],
-    });
+  mock.on(GetBucketOwnershipControlsCommand).rejects({
+    name: "OwnershipControlsNotFoundError",
+    message: "Legacy bucket",
+  });
+  mock.on(GetObjectAclCommand).resolves({
+    Grants: [
+      {
+        Permission: "FULL_CONTROL",
+        Grantee: { Type: "CanonicalUser", ID: "owner" },
+      },
+    ],
+  });
   const result = await objectAction(
     {},
     form(

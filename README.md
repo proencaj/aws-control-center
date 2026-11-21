@@ -21,7 +21,7 @@ After pulling dependency changes, use `docker compose up --build -V` to refresh 
 Set `APP_THEME` in `.env.local` to select the complete visual theme:
 
 ```dotenv
-APP_THEME=default # default, apple, win95, or wow
+APP_THEME=default # default, apple, win95, win7, or wow
 ```
 
 The value controls typography, colors, surfaces, controls, favicon, and cursor. Missing, empty, or unsupported values use `default`. After changing it, recreate the app container so Docker Compose reloads the environment file:
@@ -30,7 +30,7 @@ The value controls typography, colors, surfaces, controls, favicon, and cursor. 
 docker compose up -d --force-recreate app
 ```
 
-Themes use locally installed fonts when available and fall back to matching system stacks. The default theme prefers VT323 and Berkeley Mono, Windows 95 prefers MS Sans Serif and Cousine, WoW prefers Cinzel and Crimson Text, and Apple uses the system Apple font stack. No font files are bundled or required.
+Themes use locally installed fonts when available and fall back to matching system stacks. The default theme prefers VT323 and Berkeley Mono, Windows 95 prefers MS Sans Serif and Cousine, Windows 7 prefers Segoe UI and Consolas, WoW prefers Cinzel and Crimson Text, and Apple uses the system Apple font stack. No font files are bundled or required.
 
 ## ECS console
 
@@ -51,7 +51,11 @@ Deletion, stopping tasks, draining, scaling to zero, and removal of scaling conf
 
 Open **S3** from the sidebar or directory to list general purpose buckets across all regions. The global region selector does not filter this list. Bucket listing and prefix searches are paginated at 100 buckets; opening a bucket resolves its actual region with `HeadBucket`. Directory buckets, access points, and S3 on Outposts are outside this page's scope.
 
-Browse objects with folder prefixes, breadcrumbs, prefix search, and 100-entry pages. Object names open a properties page. Select individual objects or all objects on the current page, then use **Actions → Delete objects** or **Actions → Change storage class**. Folders are navigational and are never recursively selected or deleted. Dialogs list the exact keys, sizes, and current storage classes before any write.
+Browse objects with folder prefixes, breadcrumbs, prefix search, and 100-entry pages. Object names open a properties page. Select individual objects or all objects on the current page, then use **Actions** to download one object, create a presigned URL, request archive restores, delete objects, or change their storage class. Folders are navigational and are never recursively selected or changed. Dialogs list the exact keys, sizes, and current storage classes before any write.
+
+Downloads use five-minute presigned GET URLs and stream directly from S3. Share links can open in the browser or request a download and expire after 15 minutes to seven days. Links are bearer credentials, are held only in the current dialog, and can expire earlier when generated from temporary credentials or constrained by bucket policy. The app rechecks the selected ETag and pins the current version when S3 returns a non-null version ID. SSE-C objects require a separate workflow.
+
+Archive restore supports up to 100 selected Glacier Flexible Retrieval, Glacier Deep Archive, and Intelligent-Tiering Archive Access objects, with at most five concurrent requests. The review step re-reads metadata, reports objects already restoring or available, and prevents Expedited retrieval when any selected object is in Deep Archive. Standard, Bulk, and supported Expedited retrievals are available. Glacier restores default to a seven-day temporary copy; Intelligent-Tiering restores omit that period and return the object to Frequent Access. Retrieval, request, and temporary-copy storage charges may apply. Refresh the page to observe restore progress or expiry.
 
 Deletion requires typing the full key for one object or the bucket name for multiple objects. Requests use the selected ETag as a precondition and never specify a version ID or bypass Object Lock. With versioning enabled S3 creates delete markers; without versioning deletion is permanent; suspended versioning can permanently remove null versions. The dialog reports the bucket's versioning state when readable and explains the possible outcomes when it is not.
 
@@ -60,12 +64,14 @@ Storage changes copy each object onto its existing key. The implementation re-re
 IAM access:
 
 - Browse: `s3:ListAllMyBuckets`, `s3:ListBucket`, `s3:GetObject`; `s3:GetBucketVersioning` is optional for displaying versioning status.
+- Download and share: `s3:GetObject` on selected keys and versions. KMS-encrypted objects can also require `kms:Decrypt`.
+- Restore: `s3:RestoreObject` plus `s3:GetObject` metadata access on selected keys and versions.
 - Delete: `s3:DeleteObject` on selected keys.
 - Change storage class: `s3:PutObject`, source object/version and tagging read permissions, `s3:GetBucketOwnershipControls`, and `s3:GetBucketObjectLockConfiguration`. Legacy ACL-enabled buckets also require object/version ACL reads and `s3:PutObjectAcl`. Existing annotations may require annotation read/write permissions. KMS-encrypted objects may require `kms:Decrypt` and `kms:GenerateDataKey` on their key.
 
-If ownership or Object Lock settings cannot be inspected, storage changes stop before copying. The app does not change IAM policies, restore archives, purge versions, or create/delete buckets. Tests mock the S3 SDK and do not perform real AWS writes.
+If ownership or Object Lock settings cannot be inspected, storage changes stop before copying. The app does not change IAM policies, purge versions, extend completed restore periods, upgrade in-progress restore speeds, or create/delete buckets. Tests mock the S3 SDK and do not perform real AWS writes.
 
-API references: [ListBuckets](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListBuckets.html), [CopyObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html), [conditional deletes](https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-deletes.html).
+API references: [ListBuckets](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListBuckets.html), [CopyObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html), [RestoreObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_RestoreObject.html), [presigned URLs](https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html), [conditional deletes](https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-deletes.html).
 
 ## Logs Monitor
 

@@ -10,9 +10,14 @@ import {
   GetObjectLockConfigurationCommand,
   CopyObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
+  RestoreObjectCommand,
   type CopyObjectCommandInput,
+  type GetObjectCommandInput,
   type StorageClass,
+  type Tier,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client } from "@/lib/aws/clients";
 
 export async function listBuckets(prefix?: string, next?: string) {
@@ -52,6 +57,7 @@ export async function listObjects(
       MaxKeys: 100,
       ContinuationToken: next,
       EncodingType: "url",
+      OptionalObjectAttributes: ["RestoreStatus"],
     }),
   );
   // URL encoding allows keys containing XML-unsafe characters to be listed safely.
@@ -89,6 +95,155 @@ export async function getObject(bucket: string, region: string, key: string) {
   return s3Client(region).send(
     new HeadObjectCommand({ Bucket: bucket, Key: key }),
   );
+}
+
+export type RestoreInspection = {
+  key: string;
+  etag: string;
+  storageClass: string;
+  archiveStatus?: "ARCHIVE_ACCESS" | "DEEP_ARCHIVE_ACCESS";
+  versionId?: string;
+  restore: "eligible" | "restoring" | "available" | "not-needed";
+  restoreExpiry?: string;
+  deepArchive: boolean;
+};
+
+function restoreState(source: Awaited<ReturnType<typeof getObject>>) {
+  const restoring = source.Restore?.includes('ongoing-request="true"') ?? false;
+  const available =
+    source.Restore?.includes('ongoing-request="false"') ?? false;
+  const expiry = source.Restore?.match(/expiry-date="([^"]+)"/)?.[1];
+  return { restoring, available, expiry };
+}
+
+export async function inspectRestore(
+  bucket: string,
+  region: string,
+  key: string,
+  etag: string,
+): Promise<RestoreInspection> {
+  const source = await getObject(bucket, region, key);
+  if (source.ETag !== etag)
+    throw new Error(
+      "Object changed since it was selected. Refresh and select it again.",
+    );
+  const storageClass = source.StorageClass ?? "STANDARD";
+  const archived =
+    storageClass === "GLACIER" ||
+    storageClass === "DEEP_ARCHIVE" ||
+    Boolean(source.ArchiveStatus);
+  const { restoring, available, expiry } = restoreState(source);
+  return {
+    key,
+    etag,
+    storageClass,
+    archiveStatus: source.ArchiveStatus,
+    versionId: source.VersionId,
+    restore: restoring
+      ? "restoring"
+      : available
+        ? "available"
+        : archived
+          ? "eligible"
+          : "not-needed",
+    restoreExpiry: expiry,
+    deepArchive:
+      storageClass === "DEEP_ARCHIVE" ||
+      source.ArchiveStatus === "DEEP_ARCHIVE_ACCESS",
+  };
+}
+
+export async function requestRestore(
+  bucket: string,
+  region: string,
+  selected: { key: string; etag: string },
+  tier: Tier,
+  days: number,
+) {
+  const inspected = await inspectRestore(
+    bucket,
+    region,
+    selected.key,
+    selected.etag,
+  );
+  if (inspected.restore !== "eligible") return inspected.restore;
+  if (tier === "Expedited" && inspected.deepArchive)
+    throw new Error(
+      "Expedited retrieval is not available for Deep Archive objects.",
+    );
+  const intelligentTiering = Boolean(inspected.archiveStatus);
+  try {
+    await s3Client(region).send(
+      new RestoreObjectCommand({
+        Bucket: bucket,
+        Key: selected.key,
+        VersionId: inspected.versionId,
+        RestoreRequest: intelligentTiering
+          ? { Tier: tier }
+          : { Days: days, GlacierJobParameters: { Tier: tier } },
+      }),
+    );
+  } catch (error) {
+    if (error instanceof Error && error.name === "RestoreAlreadyInProgress")
+      return "restoring" as const;
+    throw error;
+  }
+  return "requested" as const;
+}
+
+function contentDisposition(
+  filename: string,
+  disposition: "attachment" | "inline",
+) {
+  const ascii =
+    filename.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "_") || "download";
+  const encoded = encodeURIComponent(filename).replace(
+    /['()*]/g,
+    (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,
+  );
+  return `${disposition}; filename="${ascii}"; filename*=UTF-8''${encoded}`;
+}
+
+export async function presignedObjectUrl(
+  bucket: string,
+  region: string,
+  key: string,
+  etag: string,
+  expiresIn: number,
+  disposition: "attachment" | "inline",
+) {
+  const source = await getObject(bucket, region, key);
+  if (source.ETag !== etag)
+    throw new Error(
+      "Object changed since it was selected. Refresh and select it again.",
+    );
+  if (source.SSECustomerAlgorithm)
+    throw new Error(
+      "SSE-C encrypted objects require the customer key and cannot be downloaded here.",
+    );
+  const { restoring, available } = restoreState(source);
+  if (
+    (source.StorageClass === "GLACIER" ||
+      source.StorageClass === "DEEP_ARCHIVE" ||
+      source.ArchiveStatus) &&
+    !available
+  )
+    throw new Error(
+      restoring
+        ? "This object is still being restored. Refresh after the restore finishes."
+        : "Request a restore before downloading this archived object.",
+    );
+  const filename = key.split("/").pop() || "download";
+  const input: GetObjectCommandInput = {
+    Bucket: bucket,
+    Key: key,
+    VersionId: source.VersionId,
+    IfMatch: etag,
+    ResponseContentDisposition: contentDisposition(filename, disposition),
+  };
+  return getSignedUrl(s3Client(region), new GetObjectCommand(input), {
+    expiresIn,
+  });
 }
 
 export async function deleteObject(

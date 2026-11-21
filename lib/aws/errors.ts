@@ -15,7 +15,10 @@ export function toUiError(error: unknown): string {
     return `The function changed or another update is still in progress. Refresh and try again. ${message}`;
   if (name === "CodeStorageExceededException")
     return "The account's Lambda code storage quota is full. Remove unused functions or versions and try again.";
-  if (name === "InvalidZipFileException" || name === "CodeVerificationFailedException")
+  if (
+    name === "InvalidZipFileException" ||
+    name === "CodeVerificationFailedException"
+  )
     return `Lambda rejected the deployment package. ${message}`;
   if (name === "RepositoryNotEmptyException")
     return "The repository still contains images. Delete its images before deleting the repository.";
@@ -26,6 +29,10 @@ export function toUiError(error: unknown): string {
     return "The repository or image no longer exists. Refresh the list.";
   if (name === "InvalidObjectState")
     return "This archived object must be restored before it can be copied.";
+  if (name === "RestoreAlreadyInProgress")
+    return "This object already has a restore in progress.";
+  if (name === "GlacierExpeditedRetrievalNotAvailable")
+    return "Expedited retrieval capacity is unavailable. Try again later or choose Standard retrieval.";
   if (name === "QueueDoesNotExist")
     return "The queue no longer exists in the selected region. Refresh the queue list.";
   if (name === "NotFoundException" && /topic/i.test(message))

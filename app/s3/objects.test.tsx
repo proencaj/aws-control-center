@@ -10,9 +10,17 @@ import {
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { ObjectBrowser, type ObjectRow } from "./objects";
-import { objectAction } from "./actions";
+import {
+  createPresignedUrlAction,
+  inspectRestoreAction,
+  objectAction,
+} from "./actions";
 
-vi.mock("./actions", () => ({ objectAction: vi.fn() }));
+vi.mock("./actions", () => ({
+  objectAction: vi.fn(),
+  createPresignedUrlAction: vi.fn(),
+  inspectRestoreAction: vi.fn(),
+}));
 const rows: ObjectRow[] = [
   {
     key: "folder/a.txt",
@@ -33,6 +41,7 @@ const show = (objects = rows) =>
   render(
     <ObjectBrowser
       bucket="test-bucket"
+      account="123456789012"
       prefix="folder/"
       folders={["folder/sub/"]}
       objects={objects}
@@ -41,6 +50,8 @@ const show = (objects = rows) =>
   );
 beforeEach(() => {
   vi.mocked(objectAction).mockReset();
+  vi.mocked(createPresignedUrlAction).mockReset();
+  vi.mocked(inspectRestoreAction).mockReset();
   HTMLDialogElement.prototype.showModal = function () {
     this.setAttribute("open", "");
   };
@@ -214,4 +225,97 @@ it("prevents closing or repeat submission while a mutation is pending", async ()
   await waitFor(() =>
     expect(within(modal).getByRole("button", { name: "Close" })).toBeTruthy(),
   );
+});
+
+it("reviews archive eligibility and submits a bounded restore request", async () => {
+  vi.mocked(inspectRestoreAction).mockResolvedValue({
+    items: [
+      {
+        key: rows[0].key,
+        storageClass: "GLACIER",
+        restore: "eligible",
+        deepArchive: false,
+      },
+      {
+        key: rows[1].key,
+        storageClass: "DEEP_ARCHIVE",
+        restore: "eligible",
+        deepArchive: true,
+      },
+    ],
+  });
+  vi.mocked(objectAction).mockResolvedValue({
+    results: rows.map((row) => ({ key: row.key, status: "requested" })),
+  });
+  const user = userEvent.setup();
+  show();
+  await user.click(screen.getByLabelText("Select all objects on this page"));
+  await user.click(screen.getByRole("button", { name: "Actions" }));
+  await user.click(screen.getByRole("button", { name: "Request restore" }));
+  const modal = screen.getByRole("dialog", {
+    name: "Restore archived objects",
+  });
+  await waitFor(() => expect(inspectRestoreAction).toHaveBeenCalledTimes(1));
+  await waitFor(() =>
+    expect(within(modal).getAllByText("Ready to request")).toHaveLength(2),
+  );
+  expect(
+    (
+      within(modal).getByRole("option", {
+        name: /Expedited/,
+      }) as HTMLOptionElement
+    ).disabled,
+  ).toBe(true);
+  await user.click(
+    within(modal).getByLabelText(/I understand restore requests/),
+  );
+  await user.click(
+    within(modal).getByRole("button", { name: "Request restore" }),
+  );
+  await waitFor(() => expect(objectAction).toHaveBeenCalledTimes(1));
+  const data = vi.mocked(objectAction).mock.calls[0][1];
+  expect(JSON.parse(String(data.get("payload")))).toMatchObject({
+    account: "123456789012",
+    bucket: "test-bucket",
+    operation: "restore",
+    tier: "Standard",
+    days: 7,
+  });
+});
+
+it("creates a configurable presigned URL for one selected object", async () => {
+  vi.mocked(createPresignedUrlAction).mockResolvedValue({
+    url: "https://signed.example/object",
+    expiresIn: 43_200,
+  });
+  const user = userEvent.setup();
+  show();
+  await user.click(screen.getByLabelText("Select folder/a.txt"));
+  await user.click(screen.getByRole("button", { name: "Actions" }));
+  await user.click(
+    screen.getByRole("button", { name: "Create presigned URL" }),
+  );
+  const modal = screen.getByRole("dialog", {
+    name: "Create temporary object link",
+  });
+  await user.selectOptions(
+    within(modal).getByLabelText("When opened"),
+    "inline",
+  );
+  await user.selectOptions(
+    within(modal).getByLabelText("Expires after"),
+    "43200",
+  );
+  await user.click(within(modal).getByRole("button", { name: "Create URL" }));
+  await waitFor(() =>
+    expect(createPresignedUrlAction).toHaveBeenCalledTimes(1),
+  );
+  const data = vi.mocked(createPresignedUrlAction).mock.calls[0][1];
+  expect(JSON.parse(String(data.get("payload")))).toMatchObject({
+    disposition: "inline",
+    expiresIn: 43_200,
+  });
+  expect(
+    within(modal).getByDisplayValue("https://signed.example/object"),
+  ).toBeTruthy();
 });

@@ -9,6 +9,7 @@ import "./globals.css";
 import "./themes/default.css";
 import "./themes/apple.css";
 import "./themes/win95.css";
+import "./themes/win7.css";
 import "./themes/wow.css";
 
 export function generateMetadata(): Metadata {
