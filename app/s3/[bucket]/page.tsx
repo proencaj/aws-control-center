@@ -4,6 +4,7 @@ import { attempt } from "@/lib/aws/errors";
 import { ErrorNotice } from "@/components/error-notice";
 import { ObjectBrowser } from "../objects";
 import { objectsUrl } from "../options";
+import { getCallerIdentity } from "@/lib/sts";
 
 export default async function BucketPage({
   params,
@@ -16,9 +17,16 @@ export default async function BucketPage({
   const query = await searchParams;
   const prefix = typeof query.prefix === "string" ? query.prefix : "";
   const next = typeof query.next === "string" ? query.next : undefined;
-  const regionResult = await attempt(bucketRegion(bucket));
+  const [regionResult, identityResult] = await Promise.all([
+    attempt(bucketRegion(bucket)),
+    attempt(getCallerIdentity()),
+  ]);
   if ("error" in regionResult)
     return <ErrorNotice message={regionResult.error} />;
+  if ("error" in identityResult)
+    return <ErrorNotice message={identityResult.error} />;
+  if (!identityResult.data.account)
+    return <ErrorNotice message="AWS did not return an account ID." />;
   const region = regionResult.data;
   const [result, versioning] = await Promise.all([
     attempt(listObjects(bucket, region, prefix, next)),
@@ -73,13 +81,8 @@ export default async function BucketPage({
             className="w-full"
           />
         </label>
-        <button>
-          Find objects
-        </button>
-        <Link
-          href={objectsUrl(bucket, prefix, next)}
-          className="btn"
-        >
+        <button>Find objects</button>
+        <Link href={objectsUrl(bucket, prefix, next)} className="btn">
           Refresh
         </Link>
       </form>
@@ -90,6 +93,7 @@ export default async function BucketPage({
           <ObjectBrowser
             key={`${bucket}:${prefix}:${next ?? ""}`}
             bucket={bucket}
+            account={identityResult.data.account}
             prefix={prefix}
             versioning={versionStatus}
             folders={result.data.folders}
@@ -99,6 +103,9 @@ export default async function BucketPage({
               etag: item.ETag ?? "",
               storageClass: item.StorageClass ?? "STANDARD",
               modified: item.LastModified?.toISOString() ?? "",
+              restoreInProgress: item.RestoreStatus?.IsRestoreInProgress,
+              restoreExpiry:
+                item.RestoreStatus?.RestoreExpiryDate?.toISOString(),
             }))}
           />
           <div className="flex justify-between gap-4 text-xs text-muted">

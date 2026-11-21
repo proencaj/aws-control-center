@@ -2,8 +2,22 @@
 
 import Link from "next/link";
 import { Folder, File, ChevronDown } from "lucide-react";
-import { useActionState, useEffect, useId, useRef, useState } from "react";
-import { objectAction, type ObjectActionState } from "./actions";
+import {
+  useActionState,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
+import {
+  createPresignedUrlAction,
+  inspectRestoreAction,
+  objectAction,
+  type ObjectActionState,
+  type RestoreInspectionState,
+} from "./actions";
+import { CopyButton } from "@/components/copy-button";
 import {
   formatSize,
   objectsUrl,
@@ -18,18 +32,22 @@ export type ObjectRow = {
   etag: string;
   storageClass: string;
   modified: string;
+  restoreInProgress?: boolean;
+  restoreExpiry?: string;
 };
-type Operation = "delete" | "storage";
+type Operation = "delete" | "storage" | "restore";
 const buttonClass = "";
 
 export function ObjectBrowser({
   bucket,
+  account,
   prefix = "",
   folders = [],
   objects,
   versioning,
 }: {
   bucket: string;
+  account: string;
   prefix?: string;
   folders?: string[];
   objects: ObjectRow[];
@@ -39,6 +57,9 @@ export function ObjectBrowser({
   const selectedObjects = objects.filter((object) => selected.has(object.key));
   const eligible = objects.filter((object) => object.etag);
   const [menu, setMenu] = useState(false);
+  const [linkObject, setLinkObject] = useState<ObjectRow | null>(null);
+  const [downloadError, setDownloadError] = useState("");
+  const [downloading, startDownload] = useTransition();
   const menuId = useId();
   const [dialog, setDialog] = useState<{
     operation: Operation;
@@ -50,6 +71,32 @@ export function ObjectBrowser({
   function open(operation: Operation) {
     setMenu(false);
     setDialog({ operation, objects: selectedObjects });
+  }
+  function download(object: ObjectRow) {
+    setMenu(false);
+    setDownloadError("");
+    startDownload(async () => {
+      const data = new FormData();
+      data.set(
+        "payload",
+        JSON.stringify({
+          bucket,
+          account,
+          objects: [{ key: object.key, etag: object.etag }],
+          disposition: "attachment",
+          expiresIn: 300,
+        }),
+      );
+      const result = await createPresignedUrlAction({}, data);
+      if (!result.url) {
+        setDownloadError(result.error ?? "Could not create the download link.");
+        return;
+      }
+      const anchor = document.createElement("a");
+      anchor.href = result.url;
+      anchor.rel = "noopener";
+      anchor.click();
+    });
   }
   return (
     <div className="space-y-3">
@@ -73,7 +120,7 @@ export function ObjectBrowser({
           <button
             type="button"
             className={`${buttonClass} flex items-center gap-2`}
-            disabled={!selectedObjects.length}
+            disabled={!selectedObjects.length || downloading}
             aria-expanded={menu}
             aria-controls={menuId}
             onClick={() => setMenu(!menu)}
@@ -85,6 +132,34 @@ export function ObjectBrowser({
               id={menuId}
               className="raised absolute right-0 z-10 mt-1 w-60 p-1"
             >
+              {selectedObjects.length === 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => download(selectedObjects[0])}
+                    className="block w-full text-left"
+                  >
+                    Download
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenu(false);
+                      setLinkObject(selectedObjects[0]);
+                    }}
+                    className="block w-full text-left"
+                  >
+                    Create presigned URL
+                  </button>
+                </>
+              )}
+              <button
+                type="button"
+                onClick={() => open("restore")}
+                className="block w-full text-left"
+              >
+                Request restore
+              </button>
               <button
                 type="button"
                 onClick={() => open("storage")}
@@ -103,6 +178,14 @@ export function ObjectBrowser({
           )}
         </div>
       </div>
+      {(downloading || downloadError) && (
+        <p
+          role={downloadError ? "alert" : "status"}
+          className="border border-border p-3 text-sm"
+        >
+          {downloadError || "Creating download link…"}
+        </p>
+      )}
       <div className="console-window overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-border">
@@ -138,6 +221,7 @@ export function ObjectBrowser({
               <th className="px-4 py-3">Last modified (UTC)</th>
               <th className="px-4 py-3">Size</th>
               <th className="px-4 py-3">Storage class</th>
+              <th className="px-4 py-3">Restore</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -154,6 +238,7 @@ export function ObjectBrowser({
                   </Link>
                 </td>
                 <td className="px-4 py-3">Folder</td>
+                <td className="px-4 py-3">—</td>
                 <td className="px-4 py-3">—</td>
                 <td className="px-4 py-3">—</td>
                 <td className="px-4 py-3">—</td>
@@ -205,11 +290,18 @@ export function ObjectBrowser({
                 <td className="whitespace-nowrap px-4 py-3">
                   {storageName(object.storageClass)}
                 </td>
+                <td className="whitespace-nowrap px-4 py-3">
+                  {object.restoreInProgress
+                    ? "In progress"
+                    : object.restoreExpiry
+                      ? `Available until ${new Date(object.restoreExpiry).toISOString().slice(0, 10)}`
+                      : "—"}
+                </td>
               </tr>
             ))}
             {!objects.length && !folders.length && (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-muted">
+                <td colSpan={7} className="p-8 text-center text-muted">
                   No objects found for this prefix.
                 </td>
               </tr>
@@ -217,16 +309,36 @@ export function ObjectBrowser({
           </tbody>
         </table>
       </div>
-      {dialog && (
-        <ObjectActionDialog
+      {dialog &&
+        (dialog.operation === "restore" ? (
+          <RestoreDialog
+            account={account}
+            bucket={bucket}
+            objects={dialog.objects}
+            onClose={() => {
+              setDialog(null);
+              setSelected(new Set());
+            }}
+          />
+        ) : (
+          <ObjectActionDialog
+            account={account}
+            bucket={bucket}
+            versioning={versioning}
+            operation={dialog.operation}
+            objects={dialog.objects}
+            onClose={() => {
+              setDialog(null);
+              setSelected(new Set());
+            }}
+          />
+        ))}
+      {linkObject && (
+        <PresignedUrlDialog
+          account={account}
           bucket={bucket}
-          versioning={versioning}
-          operation={dialog.operation}
-          objects={dialog.objects}
-          onClose={() => {
-            setDialog(null);
-            setSelected(new Set());
-          }}
+          object={linkObject}
+          onClose={() => setLinkObject(null)}
         />
       )}
     </div>
@@ -234,15 +346,17 @@ export function ObjectBrowser({
 }
 
 function ObjectActionDialog({
+  account,
   bucket,
   versioning,
   operation,
   objects,
   onClose,
 }: {
+  account: string;
   bucket: string;
   versioning: string;
-  operation: Operation;
+  operation: Exclude<Operation, "restore">;
   objects: ObjectRow[];
   onClose: () => void;
 }) {
@@ -289,6 +403,7 @@ function ObjectActionDialog({
           name="payload"
           value={JSON.stringify({
             bucket,
+            account,
             operation,
             objects: objects.map(({ key, etag }) => ({ key, etag })),
             ...(target ? { storageClass: target } : {}),
@@ -469,6 +584,374 @@ function ObjectActionDialog({
               }
             >
               {deleting ? "Delete selected objects" : "Change storage class"}
+            </button>
+          )}
+        </div>
+      </form>
+    </dialog>
+  );
+}
+
+function RestoreDialog({
+  account,
+  bucket,
+  objects,
+  onClose,
+}: {
+  account: string;
+  bucket: string;
+  objects: ObjectRow[];
+  onClose: () => void;
+}) {
+  const modal = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  const selection = JSON.stringify(
+    objects.map(({ key, etag }) => ({ key, etag })),
+  );
+  const [inspection, setInspection] = useState<RestoreInspectionState>({});
+  const [inspecting, startInspection] = useTransition();
+  const [state, action, pending] = useActionState<ObjectActionState, FormData>(
+    objectAction,
+    {},
+  );
+  const [tier, setTier] = useState<"Bulk" | "Standard" | "Expedited">(
+    "Standard",
+  );
+  const [days, setDays] = useState(7);
+  const [acknowledged, setAcknowledged] = useState(false);
+  const busy = inspecting || pending;
+  const eligible = inspection.items?.filter(
+    (item) => item.restore === "eligible",
+  );
+  const hasDeepArchive = inspection.items?.some((item) => item.deepArchive);
+
+  useEffect(() => {
+    modal.current?.showModal();
+    startInspection(async () => {
+      setInspection(
+        await inspectRestoreAction({
+          account,
+          bucket,
+          objects: JSON.parse(selection),
+        }),
+      );
+    });
+  }, [account, bucket, selection]);
+
+  return (
+    <dialog
+      ref={modal}
+      aria-labelledby={titleId}
+      onCancel={(event) => {
+        if (busy) event.preventDefault();
+      }}
+      onClose={onClose}
+      className="console-window m-auto max-h-[90vh] w-[calc(100%_-_2rem)] max-w-3xl overflow-y-auto text-foreground"
+    >
+      <div className="console-title">
+        <span>S3 / Request restore</span>
+        <span>{objects.length} selected</span>
+      </div>
+      <form action={action} className="space-y-5 p-5">
+        <h2 id={titleId} className="console-heading">
+          Restore archived objects
+        </h2>
+        <p className="text-sm">
+          S3 is checking each object&apos;s current archive and restore status
+          before submitting requests.
+        </p>
+        <input
+          type="hidden"
+          name="payload"
+          value={JSON.stringify({
+            account,
+            bucket,
+            operation: "restore",
+            objects: objects.map(({ key, etag }) => ({ key, etag })),
+            tier,
+            days,
+          })}
+        />
+        {inspecting && <p role="status">Inspecting selected objects…</p>}
+        {inspection.error && (
+          <p role="alert" className="border border-border p-3 text-sm">
+            {inspection.error}
+          </p>
+        )}
+        {inspection.items && (
+          <div className="max-h-56 overflow-auto border border-border">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr>
+                  <th className="p-2">Object key</th>
+                  <th className="p-2">Archive class/tier</th>
+                  <th className="p-2">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {inspection.items.map((item) => (
+                  <tr key={item.key}>
+                    <td className="break-all p-2">{item.key}</td>
+                    <td className="p-2">
+                      {item.archiveStatus
+                        ? `Intelligent-Tiering / ${item.archiveStatus === "DEEP_ARCHIVE_ACCESS" ? "Deep Archive Access" : "Archive Access"}`
+                        : storageName(item.storageClass ?? "Unknown")}
+                    </td>
+                    <td className="p-2">
+                      {item.error ??
+                        (item.restore === "eligible"
+                          ? "Ready to request"
+                          : item.restore === "restoring"
+                            ? "Restore in progress"
+                            : item.restore === "available"
+                              ? `Available${item.restoreExpiry ? ` until ${item.restoreExpiry}` : ""}`
+                              : "Restore not required")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="space-y-2 text-sm">
+            <span>Retrieval speed</span>
+            <select
+              className="w-full"
+              value={tier}
+              disabled={busy || Boolean(state.results)}
+              onChange={(event) => setTier(event.target.value as typeof tier)}
+            >
+              <option value="Standard">Standard</option>
+              <option value="Bulk">Bulk</option>
+              <option value="Expedited" disabled={hasDeepArchive}>
+                Expedited
+                {hasDeepArchive ? " (unavailable for Deep Archive)" : ""}
+              </option>
+            </select>
+          </label>
+          <label className="space-y-2 text-sm">
+            <span>Temporary availability (days)</span>
+            <input
+              className="w-full"
+              type="number"
+              min={1}
+              max={365}
+              value={days}
+              disabled={busy || Boolean(state.results)}
+              onChange={(event) => setDays(event.target.valueAsNumber)}
+            />
+          </label>
+        </div>
+        <p className="text-sm text-muted">
+          Standard usually completes within hours. Bulk is slower and generally
+          lowest cost. Expedited can complete in minutes for supported objects
+          and can incur premium charges. The availability period applies to
+          Glacier temporary copies; Intelligent-Tiering restores return objects
+          to its Frequent Access tier instead.
+        </p>
+        <label className="flex items-start gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="acknowledge"
+            value="yes"
+            checked={acknowledged}
+            disabled={busy || Boolean(state.results)}
+            onChange={(event) => setAcknowledged(event.target.checked)}
+          />
+          <span>
+            I understand restore requests, retrieval, and temporary-copy storage
+            may incur charges.
+          </span>
+        </label>
+        {state.error && (
+          <p role="alert" className="border border-border p-3 text-sm">
+            {state.error}
+          </p>
+        )}
+        {state.results && (
+          <section className="space-y-2" aria-label="Restore results">
+            <p role="status" className="font-semibold">
+              {
+                state.results.filter((result) => result.status !== "failed")
+                  .length
+              }{" "}
+              completed /{" "}
+              {
+                state.results.filter((result) => result.status === "failed")
+                  .length
+              }{" "}
+              failed
+            </p>
+            <ul className="max-h-48 space-y-2 overflow-auto text-xs">
+              {state.results.map((result) => (
+                <li
+                  key={result.key}
+                  className="break-all border border-border p-2"
+                >
+                  {result.key}: <strong>{result.status}</strong>
+                  {result.error && <p>{result.error}</p>}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {pending && <p role="status">Submitting restore requests…</p>}
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => modal.current?.close()}
+          >
+            {state.results ? "Close" : "Cancel"}
+          </button>
+          {!state.results && (
+            <button
+              type="submit"
+              className="font-bold"
+              disabled={
+                busy ||
+                !inspection.items ||
+                !eligible?.length ||
+                !acknowledged ||
+                !Number.isInteger(days) ||
+                days < 1 ||
+                days > 365 ||
+                (tier === "Expedited" && hasDeepArchive)
+              }
+            >
+              Request restore
+            </button>
+          )}
+        </div>
+      </form>
+    </dialog>
+  );
+}
+
+function PresignedUrlDialog({
+  account,
+  bucket,
+  object,
+  onClose,
+}: {
+  account: string;
+  bucket: string;
+  object: ObjectRow;
+  onClose: () => void;
+}) {
+  const modal = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  const [disposition, setDisposition] = useState<"attachment" | "inline">(
+    "attachment",
+  );
+  const [expiresIn, setExpiresIn] = useState(3600);
+  const [state, action, pending] = useActionState(createPresignedUrlAction, {});
+  useEffect(() => modal.current?.showModal(), []);
+  return (
+    <dialog
+      ref={modal}
+      aria-labelledby={titleId}
+      onCancel={(event) => {
+        if (pending) event.preventDefault();
+      }}
+      onClose={onClose}
+      className="console-window m-auto w-[calc(100%_-_2rem)] max-w-2xl text-foreground"
+    >
+      <div className="console-title">S3 / Presigned URL</div>
+      <form action={action} className="space-y-5 p-5">
+        <h2 id={titleId} className="console-heading">
+          Create temporary object link
+        </h2>
+        <p className="break-all text-sm">{object.key}</p>
+        <input
+          type="hidden"
+          name="payload"
+          value={JSON.stringify({
+            account,
+            bucket,
+            objects: [{ key: object.key, etag: object.etag }],
+            disposition,
+            expiresIn,
+          })}
+        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="space-y-2 text-sm">
+            <span>When opened</span>
+            <select
+              className="w-full"
+              value={disposition}
+              disabled={pending || Boolean(state.url)}
+              onChange={(event) =>
+                setDisposition(event.target.value as typeof disposition)
+              }
+            >
+              <option value="attachment">Download the file</option>
+              <option value="inline">Open in the browser</option>
+            </select>
+          </label>
+          <label className="space-y-2 text-sm">
+            <span>Expires after</span>
+            <select
+              className="w-full"
+              value={expiresIn}
+              disabled={pending || Boolean(state.url)}
+              onChange={(event) => setExpiresIn(Number(event.target.value))}
+            >
+              <option value={900}>15 minutes</option>
+              <option value={3600}>1 hour</option>
+              <option value={43_200}>12 hours</option>
+              <option value={86_400}>1 day</option>
+              <option value={604_800}>7 days</option>
+            </select>
+          </label>
+        </div>
+        <p className="text-sm text-muted">
+          Anyone with this bearer link can read the object until it expires.
+          Temporary AWS credentials or bucket policy limits can make it expire
+          sooner. The URL is not saved by this app.
+        </p>
+        {state.error && (
+          <p role="alert" className="border border-border p-3 text-sm">
+            {state.error}
+          </p>
+        )}
+        {state.url && (
+          <section className="space-y-3">
+            <label className="block space-y-2 text-sm">
+              <span>Presigned URL</span>
+              <textarea
+                readOnly
+                rows={5}
+                className="w-full"
+                value={state.url}
+              />
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <CopyButton value={state.url} label="Copy URL" />
+              <a
+                className="btn"
+                href={state.url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open link
+              </a>
+            </div>
+          </section>
+        )}
+        {pending && <p role="status">Signing URL…</p>}
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => modal.current?.close()}
+          >
+            {state.url ? "Close" : "Cancel"}
+          </button>
+          {!state.url && (
+            <button type="submit" className="font-bold" disabled={pending}>
+              Create URL
             </button>
           )}
         </div>
